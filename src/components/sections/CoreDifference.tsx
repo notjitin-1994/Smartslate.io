@@ -49,16 +49,17 @@ export const CoreDifference: React.FC<CoreDifferenceProps> = ({ onRevealNext }) 
       <div className="mt-12 text-center">
         <button 
           onClick={onRevealNext}
-          className="px-8 py-3 bg-brand-accent text-brand-bg font-semibold rounded-lg hover:bg-brand-accent/90 transition-colors duration-300 flex items-center space-x-2 group border border-brand-accent/50 mx-auto"
+          className="px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 group hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 mx-auto"
         >
           <span>See the Solution</span>
           <svg 
-            className="w-4 h-4 group-hover:translate-y-1 transition-transform duration-300 animate-arrow-bounce" 
+            className="w-5 h-5 arrow-bounce group-hover:translate-y-1" 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
+            strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </button>
       </div>

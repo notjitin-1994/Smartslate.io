@@ -17,10 +17,10 @@ export const Contact: React.FC = () => {
               <p className="text-lg text-text-secondary mb-8">The time for incremental change is over. The demands of today's dynamic, skills-first economy require a bold and strategic response. Smartslate provides the essential framework, the tools, and the <strong className="gradient-text">strategic partnership</strong> required to turn India's demographic dividend into its greatest strength. <br /><br /> Join us in building the <strong className="gradient-text">talent pipeline that will define tomorrow</strong>.</p>
               <button 
                 onClick={handleContact}
-                className="group bg-[#A8DADC] hover:bg-[#8fc8ca] text-[#13111c] font-bold py-3 px-8 rounded-lg transition-colors duration-300 flex items-center gap-2"
+                className="px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 group hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5"
               >
-                Uncover the Crisis
-                <ArrowDown className="transition-transform duration-300 group-hover:translate-y-1" />
+                <span>Uncover the Crisis</span>
+                <ArrowDown className="w-5 h-5 arrow-bounce group-hover:translate-y-1" />
               </button>
             </div>
             <div>

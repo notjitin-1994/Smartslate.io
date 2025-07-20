@@ -102,14 +102,14 @@ export const WhoWePartnerWith: React.FC = () => {
         </Reveal>
 
         <div className="mt-16 flex flex-col sm:flex-row items-start gap-4">
-          <Link to="/courses" className="group inline-flex items-center justify-center text-left w-full sm:w-auto px-8 py-3 border border-white/50 rounded-lg text-lg font-bold text-white transition-all duration-300 hover:bg-white/10 hover:border-white">
-            <BookOpen className="w-5 h-5 mr-3 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+          <Link to="/courses" className="group inline-flex items-center justify-center text-left w-full sm:w-auto px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5">
+            <BookOpen className="w-5 h-5 arrow-bounce" />
             <span>Explore Courses</span>
           </Link>
           <button
             onClick={() => window.dispatchEvent(new CustomEvent<FormType>('open-contact', { detail: 'leader' }))}
-            className="group inline-flex items-center justify-center text-left w-full sm:w-auto px-8 py-3 border border-white/50 rounded-lg text-lg font-bold text-white transition-all duration-300 hover:bg-white/10 hover:border-white">
-            <SlidersHorizontal className="w-5 h-5 mr-3 flex-shrink-0 transition-transform duration-300 group-hover:rotate-3" />
+            className="group inline-flex items-center justify-center text-left w-full sm:w-auto px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5">
+            <SlidersHorizontal className="w-5 h-5 arrow-bounce" />
             <span>Build Your Own</span>
           </button>
         </div>

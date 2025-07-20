@@ -63,9 +63,10 @@ export const ROI: React.FC<ROIProps> = ({ onContact }) => (
           <p className="text-lg text-text-secondary max-w-4xl mb-8">The cost of inaction is far greater. Failing to adapt means <strong className="gradient-text">lost productivity, higher employee churn, and being outmaneuvered by the competition</strong>.</p>
           <button 
             onClick={onContact}
-            className="bg-[#A8DADC] hover:bg-[#8fc8ca] text-[#13111c] font-bold py-3 px-8 rounded-lg transition-colors duration-300"
+            className="px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 group hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5"
           >
-            Contact Us
+            <span>Contact Us</span>
+            <ArrowDown className="w-5 h-5 arrow-bounce group-hover:translate-y-1" />
           </button>
         </div>
       </Reveal>
