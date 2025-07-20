@@ -76,9 +76,9 @@ export const WhoWePartnerWith: React.FC = () => {
   }, []);
 
   return (
-    <section className="py-16 md:py-24 lg:py-32 bg-brand-background relative overflow-hidden">
+    <section className="py-12 md:py-16 lg:py-20 bg-brand-background relative overflow-hidden">
       <Reveal>
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="w-full max-w-7xl mx-auto px-6">
           <div className="w-full mb-12">
             <h2 className="font-quicksand text-3xl md:text-4xl font-bold text-white mb-4">
               Who We Partner With
