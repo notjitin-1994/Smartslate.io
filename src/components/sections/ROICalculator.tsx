@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { TrendingUp, BrainCircuit, Award, Link as LinkIcon, Clock, Info, Briefcase, GraduationCap, User, ArrowLeft, ArrowDown, ArrowRight } from 'lucide-react';
 import Tooltip from '../Tooltip';
 
@@ -133,71 +134,176 @@ const MetricCard = ({ icon: Icon, title, value, unit = '', description, source, 
 };
 
 /**
- * Persona selection screen with improved visual design.
+ * Persona selection screen with enhanced visual design and interactions.
+ * Features:
+ * - Smooth hover and focus states
+ * - Subtle animations and transitions
+ * - Improved visual hierarchy
+ * - Better accessibility
  * @param {{onSelect: (persona: string) => void}} props
  */
-const PersonaSelector = ({ onSelect }: { onSelect: (persona: string) => void }) => (
-    <Reveal>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mx-auto">
-            <button 
-                onClick={() => onSelect('educator')} 
-                className="group relative overflow-hidden bg-brand-card-bg hover:bg-brand-card-bg/90 transition-all duration-300 p-6 h-36 rounded-xl text-left border border-brand-accent/15 hover:border-brand-accent/40 flex items-center transform hover:-translate-y-1 hover:shadow-lg"
-            >
-                <div className="flex items-center gap-4 w-full">
-                    <div className="flex-shrink-0 w-12 h-12 rounded-full bg-brand-accent/10 flex items-center justify-center group-hover:bg-brand-accent/20 transition-all duration-300">
-                        <GraduationCap className="w-6 h-6 text-brand-accent" />
-                    </div>
-                    <div>
-                        <h3 className="font-quicksand text-lg font-bold text-white mb-0.5">Academic Leader</h3>
-                        <p className="text-sm text-text-secondary">
-                            <span className="font-medium text-brand-accent">Student employability</span> & <span className="font-medium text-brand-accent">industry partnerships</span>
-                        </p>
-                    </div>
+const PersonaSelector = ({ onSelect }: { onSelect: (persona: string) => void }) => {
+    const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+    
+    const personas = [
+        {
+            id: 'educator',
+            title: 'Academic Leader',
+            icon: GraduationCap,
+            description: (
+                <>
+                    <span className="highlight-text">Student employability</span> &{' '}
+                    <span className="highlight-text">industry partnerships</span>
+                </>
+            ),
+            gradient: 'from-purple-500/10 to-blue-500/10',
+            hoverGradient: 'from-purple-500/15 to-blue-500/15',
+            iconColor: 'text-purple-400',
+            bgColor: 'bg-purple-500/10',
+            hoverBgColor: 'bg-purple-500/20',
+        },
+        {
+            id: 'businessman',
+            title: 'Corporate Leader',
+            icon: Briefcase,
+            description: (
+                <>
+                    <span className="highlight-text">ROI</span>,{' '}
+                    <span className="highlight-text">productivity</span> &{' '}
+                    <span className="highlight-text">talent retention</span>
+                </>
+            ),
+            gradient: 'from-blue-500/10 to-cyan-500/10',
+            hoverGradient: 'from-blue-500/15 to-cyan-500/15',
+            iconColor: 'text-blue-400',
+            bgColor: 'bg-blue-500/10',
+            hoverBgColor: 'bg-blue-500/20',
+        },
+        {
+            id: 'student',
+            title: 'Aspiring Professional',
+            icon: User,
+            description: (
+                <>
+                    <span className="highlight-text">Career acceleration</span> &{' '}
+                    <span className="highlight-text">dream job readiness</span>
+                </>
+            ),
+            gradient: 'from-cyan-500/10 to-emerald-500/10',
+            hoverGradient: 'from-cyan-500/15 to-emerald-500/15',
+            iconColor: 'text-cyan-400',
+            bgColor: 'bg-cyan-500/10',
+            hoverBgColor: 'bg-cyan-500/20',
+        },
+    ];
+
+    return (
+        <Reveal>
+            <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-5">
+                    {personas.map((persona) => (
+                        <motion.button
+                            key={persona.id}
+                            onClick={() => onSelect(persona.id)}
+                            onMouseEnter={() => setHoveredCard(persona.id)}
+                            onMouseLeave={() => setHoveredCard(null)}
+                            onFocus={() => setHoveredCard(persona.id)}
+                            onBlur={() => setHoveredCard(null)}
+                            className={`relative overflow-hidden p-6 sm:p-6 rounded-xl text-left border border-white/5 hover:border-${persona.iconColor.split('-')[1]}-500/30 transition-all duration-300 flex flex-col h-full group`}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                            aria-label={`Select ${persona.title} persona`}
+                        >
+                            {/* Background gradient - always visible on mobile, shows on hover on desktop */}
+                            <div 
+                                className={`absolute inset-0 bg-gradient-to-br ${persona.gradient} opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300`}
+                                aria-hidden="true"
+                            />
+                            
+                            {/* Animated border highlight */}
+                            <motion.div 
+                                className="absolute inset-0 border-2 border-transparent rounded-xl pointer-events-none"
+                                animate={{
+                                    borderColor: hoveredCard === persona.id ? `rgba(99, 102, 241, 0.5)` : 'transparent',
+                                }}
+                                transition={{ duration: 0.3 }}
+                            />
+                            
+                            <div className="relative z-10 flex-1 flex flex-col">
+                                <div className="flex items-center gap-4 mb-5 sm:mb-4">
+                                    <motion.div 
+                                        className={`w-12 h-12 rounded-full ${persona.bgColor} ${persona.hoverBgColor} flex items-center justify-center transition-colors duration-300`}
+                                        animate={{
+                                            scale: hoveredCard === persona.id ? 1.1 : 1,
+                                            rotate: hoveredCard === persona.id ? 5 : 0,
+                                        }}
+                                        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                                    >
+                                        <persona.icon className={`w-6 h-6 ${persona.iconColor}`} />
+                                    </motion.div>
+                                    
+                                    <motion.h3 
+                                        className="font-quicksand text-lg font-bold text-white"
+                                        animate={{
+                                            x: hoveredCard === persona.id ? 5 : 0,
+                                        }}
+                                        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                                    >
+                                        {persona.title}
+                                    </motion.h3>
+                                </div>
+                                
+                                <motion.p 
+                                    className="text-sm text-text-secondary mb-6 sm:mb-6 flex-1"
+                                    animate={{
+                                        opacity: hoveredCard === persona.id ? 0.9 : 0.7,
+                                    }}
+                                >
+                                    {persona.description}
+                                </motion.p>
+                                
+                                <motion.div 
+                                    className="flex items-center text-brand-accent font-medium text-sm mt-auto"
+                                    animate={{
+                                        x: hoveredCard === persona.id ? 5 : 0,
+                                    }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                                >
+                                    <span>Calculate My Benefits</span>
+                                    <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+                                </motion.div>
+                            </div>
+                            
+                            {/* Subtle shine effect on hover */}
+                            <motion.div 
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none"
+                                initial={{ x: '-100%' }}
+                                animate={{
+                                    x: hoveredCard === persona.id ? '100%' : '-100%',
+                                    opacity: hoveredCard === persona.id ? 1 : 0,
+                                }}
+                                transition={{ duration: 0.8, ease: 'easeInOut' }}
+                            />
+                        </motion.button>
+                    ))}
                 </div>
-                <ArrowRight className="w-5 h-5 ml-auto text-brand-accent transition-transform duration-300 sm:group-hover:translate-x-1 group-hover:translate-y-1 sm:rotate-0 rotate-90" />
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-brand-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
-            
-            <button 
-                onClick={() => onSelect('businessman')} 
-                className="group relative overflow-hidden bg-brand-card-bg hover:bg-brand-card-bg/90 transition-all duration-300 p-6 h-36 rounded-xl text-left border border-brand-accent/15 hover:border-brand-accent/40 flex items-center transform hover:-translate-y-1 hover:shadow-lg"
-            >
-                <div className="flex items-center gap-3 w-full">
-                    <div className="flex-shrink-0 w-12 h-12 rounded-full bg-brand-accent/10 flex items-center justify-center group-hover:bg-brand-accent/20 transition-all duration-300">
-                        <Briefcase className="w-6 h-6 text-brand-accent" />
-                    </div>
-                    <div>
-                        <h3 className="font-quicksand text-lg font-bold text-white mb-0.5">Corporate Leader</h3>
-                        <p className="text-sm text-text-secondary">
-                            <span className="font-medium text-brand-accent">ROI</span>, <span className="font-medium text-brand-accent">productivity</span> & <span className="font-medium text-brand-accent">talent retention</span>
-                        </p>
-                    </div>
+                
+                <div className="mt-6 text-center">
+                    <p className="text-sm text-text-secondary">
+                        Not sure which one to choose? <button 
+                            onClick={() => onSelect('educator')} 
+                            className="text-brand-accent hover:underline focus:outline-none focus:ring-2 focus:ring-brand-accent/50 rounded px-1"
+                        >
+                            Start with Academic Leader
+                        </button>
+                    </p>
                 </div>
-                <ArrowRight className="w-5 h-5 ml-auto text-brand-accent transition-transform duration-300 sm:group-hover:translate-x-1 group-hover:translate-y-1 sm:rotate-0 rotate-90" />
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-brand-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
-            
-            <button 
-                onClick={() => onSelect('student')} 
-                className="group relative overflow-hidden bg-brand-card-bg hover:bg-brand-card-bg/90 transition-all duration-300 p-6 h-36 rounded-xl text-left border border-brand-accent/15 hover:border-brand-accent/40 flex items-center transform hover:-translate-y-1 hover:shadow-lg"
-            >
-                <div className="flex items-center gap-3 w-full">
-                    <div className="flex-shrink-0 w-14 h-14 rounded-full bg-brand-accent/10 flex items-center justify-center group-hover:bg-brand-accent/20 transition-all duration-300">
-                        <User className="w-8 h-8 text-brand-accent" />
-                    </div>
-                    <div>
-                        <h3 className="font-quicksand text-lg font-bold text-white mb-0.5">Aspiring Professional</h3>
-                        <p className="text-sm text-text-secondary">
-                            <span className="font-medium text-brand-accent">Career acceleration</span> & <span className="font-medium text-brand-accent">dream job readiness</span>
-                        </p>
-                    </div>
-                </div>
-                <ArrowRight className="w-5 h-5 ml-auto text-brand-accent transition-transform duration-300 sm:group-hover:translate-x-1 group-hover:translate-y-1 sm:rotate-0 rotate-90" />
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-brand-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
-        </div>
-    </Reveal>
-);
+            </div>
+        </Reveal>
+    );
+};
 
 /**
  * The main ROI Calculator component, rewritten to match the new design system.
