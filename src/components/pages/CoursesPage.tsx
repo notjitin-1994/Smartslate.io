@@ -3,6 +3,7 @@ import { Reveal } from '../common/reveal';
 import { BrainCircuit, Database, Sparkles, Users, Code, Target, BarChart2, Cpu } from 'lucide-react';
 import { StarryNight } from '../common/StarryNight';
 import { CourseCard } from '../common/CourseCard';
+import { Link } from 'react-router-dom';
 
 const CoursesPage: React.FC = () => (
   <>
@@ -25,14 +26,17 @@ const CoursesPage: React.FC = () => (
         <Reveal>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* AI Literacy Course */}
-            <CourseCard 
-              title="AI Literacy"
-              description="Master the fundamentals of AI, from neural networks to ethical considerations. Learn how AI is transforming industries and how to leverage it effectively in your career."
-              category="Foundational Course"
-              tags={['AI Basics', 'Machine Learning', 'Future Tech']}
-              imageUrl="https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-              Icon={Cpu}
-            />
+            <Link to="/courses/ai-literacy" className="block h-full hover:scale-[1.02] transition-transform duration-300">
+              <CourseCard 
+                title="AI Literacy"
+                description="Master the fundamentals of AI, from neural networks to ethical considerations. Learn how AI is transforming industries and how to leverage it effectively in your career."
+                badge="Coming August 2025"
+                category="Foundational Course"
+                tags={['AI Basics', 'Machine Learning', 'Future Tech']}
+                imageUrl="https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                Icon={Cpu}
+              />
+            </Link>
             
             {/* Data Science Course */}
             <CourseCard 

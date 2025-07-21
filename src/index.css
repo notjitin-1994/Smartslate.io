@@ -21,9 +21,12 @@
 /* Make sure html and body take up full viewport height */
 html, body {
   width: 100%;
+  min-height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   scroll-behavior: smooth;
+  background-color: #091420; /* Updated background color */
+  color: #ffffff; /* Ensure text is visible on dark background */
   /* transform property was removed to fix position:fixed behavior */
   -webkit-overflow-scrolling: touch;
   will-change: scroll-position;

@@ -11,6 +11,7 @@ interface CourseCardProps {
   imageUrl: string;
   Icon: LucideIcon;
   comingSoon?: boolean;
+  badge?: string;
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
@@ -21,6 +22,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   imageUrl,
   Icon,
   comingSoon = false,
+  badge,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -65,8 +67,20 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
       <div className="relative mb-4 h-48 w-full overflow-hidden rounded-lg bg-gradient-to-br from-gray-900/80 to-gray-800/80">
         {!isImageLoaded && (
-          <div className="flex h-full w-full items-center justify-center bg-gray-900/20">
-            <Loader2 className="h-8 w-8 animate-spin text-brand-accent" />
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 rounded-lg bg-brand-accent/10 text-brand-accent">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-medium text-brand-accent">{category}</span>
+              </div>
+              {badge && (
+                <span className="text-xs font-medium px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400">
+                  {badge}
+                </span>
+              )}
+            </div>
           </div>
         )}
         <motion.div 

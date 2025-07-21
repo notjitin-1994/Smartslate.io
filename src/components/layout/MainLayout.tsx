@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Header } from './Header';
+import Header from './Header';
 import { Footer } from './Footer';
 import { ScrollToTopButton } from './ScrollToTopButton';
 import { ErrorBoundary } from '../common/ErrorBoundary';

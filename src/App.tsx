@@ -14,6 +14,7 @@ import type { FormType } from './lib/formUtils';
 const MainLayout = lazy(() => import('./components/layout/MainLayout'));
 const Index = lazy(() => import('./pages/Index'));
 const CoursesPage = lazy(() => import('./components/pages/CoursesPage'));
+const AILiteracyIntro = lazy(() => import('./components/courses/AILiteracyIntro'));
 const SolutionsPage = lazy(() => import('./components/pages/SolutionsPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const SmartslateDifference = lazy(() => import('./components/pages/SmartslateDifference'));
@@ -65,7 +66,8 @@ const App = () => {
             <Routes>
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
-                                <Route path="/courses" element={<CoursesPage />} />
+                <Route path="/courses" element={<CoursesPage />} />
+                <Route path="/courses/ai-literacy" element={<AILiteracyIntro />} />
                 <Route path="/solutions" element={<SolutionsPage onContactClick={handleContactClick} />} />
                 <Route path="/smartslate-difference" element={<SmartslateDifference />} />
                 <Route path="/collaborate" element={<CollaboratePage onContactClick={handleContactClick} />} />
