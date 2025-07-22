@@ -2,6 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import LoginModal from '@/components/modals/LoginModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { auth } from '@/lib/firebase';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 type NavItem = {
   path: string;
@@ -27,6 +39,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
+  const { user, loading } = useAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,6 +49,25 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const productsMenuRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuContentRef = useRef<HTMLDivElement>(null);
+
+  const getInitials = (name: string | null) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   // Handle scroll effect
   useEffect(() => {
@@ -366,16 +398,58 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
             })}
             
             <div className="pt-4 pb-2 mt-4 border-t border-gray-800">
-              <button
-                onClick={() => {
-                  setIsLoginModalOpen(true);
-                  closeMenu();
-                }}
-                className="w-full text-center px-6 py-4 text-base font-semibold text-[#2d1b69] bg-[hsl(var(--brand-accent))] rounded-lg transition-all duration-300 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 touch-manipulation min-h-[48px] active:scale-95 active:bg-[hsl(var(--brand-accent-dark))]"
-                aria-label="Login to your account"
-              >
-                Login
-              </button>
+              {user ? (
+                <div className="space-y-4">
+                  <div className="flex items-center px-4 py-3">
+                    <Avatar className="h-10 w-10">
+                      {user.photoURL ? (
+                        <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
+                      ) : (
+                        <AvatarFallback className="text-sm">
+                          {getInitials(user.displayName || user?.email)}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-white">
+                        {user.displayName || 'User'}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigate('/profile');
+                      closeMenu();
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800/50 rounded-md transition-colors"
+                  >
+                    View Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      closeMenu();
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-900/20 rounded-md transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsLoginModalOpen(true);
+                    closeMenu();
+                  }}
+                  className="w-full text-center px-6 py-4 text-base font-semibold text-[#2d1b69] bg-[hsl(var(--brand-accent))] rounded-lg transition-all duration-300 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 touch-manipulation min-h-[48px] active:scale-95 active:bg-[hsl(var(--brand-accent-dark))]"
+                  aria-label="Login to your account"
+                >
+                  Login
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -413,15 +487,57 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                 {navLinks.map((item) => renderNavItem(item))}
               </nav>
               
-              {/* Login Button */}
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className={cn(
-                  'px-6 py-2.5 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-brand-accent'
-                )}
-              >
-                Login
-              </button>
+              {/* User Profile / Login Button */}
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="relative h-10 w-10 rounded-full ml-2 hover:bg-gray-800 focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-800"
+                      aria-label="User menu"
+                    >
+                      <Avatar className="h-8 w-8">
+                        {user.photoURL ? (
+                          <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
+                        ) : (
+                          <AvatarFallback className="text-xs">
+                            {getInitials(user.displayName || user?.email)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {user.displayName || 'User'}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500">
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className={cn(
+                    'px-6 py-2.5 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-brand-accent'
+                  )}
+                >
+                  Login
+                </button>
+              )}
             </div>
 
             {/* Mobile menu button */}
