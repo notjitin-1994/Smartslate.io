@@ -292,8 +292,8 @@ const ProfilePage: React.FC = () => {
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-indigo-100">{course.title}</CardTitle>
-                        <CardDescription className="text-indigo-300">
+                        <CardTitle>{course.title}</CardTitle>
+                        <CardDescription>
                           Due {formatDate(course.dueDate)}
                         </CardDescription>
                       </div>
@@ -339,8 +339,8 @@ const ProfilePage: React.FC = () => {
                       {achievement.icon}
                     </div>
                     <div>
-                      <CardTitle className="text-lg text-indigo-100">{achievement.title}</CardTitle>
-                      <CardDescription className="text-indigo-300">{achievement.description}</CardDescription>
+                      <CardTitle className="text-lg">{achievement.title}</CardTitle>
+                      <CardDescription>{achievement.description}</CardDescription>
                     </div>
                   </CardHeader>
                 </AnimatedCard>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Test</title>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
+        #output { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            cursor: pointer; 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 4px;
+        }
+        button:hover { background-color: #45a049; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Firestore Connection Test</h1>
+    <div>
+        <button id="testConnection">Test Firestore Connection</button>
+        <button id="testReadWrite">Test Read/Write</button>
+        <button id="clearLog">Clear Log</button>
+    </div>
+    <div id="output">Click a button to start testing...</div>
+
+    <script type="module">
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDeN3mSpmnjyk9jIg6efqp8uQnb0_tpyiw",
+            authDomain: "smartslatesite-app.firebaseapp.com",
+            projectId: "smartslatesite-app",
+            storageBucket: "smartslatesite-app.appspot.com",
+            messagingSenderId: "490151080321",
+            appId: "1:490151080321:web:15778d0b8f45b8ef20f880"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // DOM elements
+        const output = document.getElementById('output');
+        const testConnectionBtn = document.getElementById('testConnection');
+        const testReadWriteBtn = document.getElementById('testReadWrite');
+        const clearLogBtn = document.getElementById('clearLog');
+
+        // Log function
+        function log(message, isError = false) {
+            const timestamp = new Date().toISOString();
+            const logEntry = document.createElement('div');
+            logEntry.className = isError ? 'error' : '';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            output.appendChild(logEntry);
+            output.scrollTop = output.scrollHeight;
+            console.log(`[FirestoreTest] ${message}`);
+        }
+
+        // Clear log
+        function clearLog() {
+            output.innerHTML = '';
+            log('Log cleared');
+        }
+
+        // Test Firestore connection
+        async function testConnection() {
+            try {
+                log('🔌 Testing Firestore connection...');
+                
+                // Try to get a document (this will test the connection)
+                const testDoc = await db.collection('test').doc('connection-test').get();
+                
+                if (testDoc.exists) {
+                    log('✅ Firestore connection successful!');
+                    log(`Document data: ${JSON.stringify(testDoc.data(), null, 2)}`);
+                } else {
+                    log('⚠️  Test document does not exist, but connection is working.');
+                    log('This is expected if the test document was never created.');
+                }
+                
+                // Test authentication
+                log('🔑 Testing anonymous authentication...');
+                const userCredential = await auth.signInAnonymously();
+                log(`✅ Authenticated as anonymous user: ${userCredential.user.uid}`);
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, true);
+                log(`Error code: ${error.code}`, true);
+                log('Check your Firebase configuration and internet connection.', true);
+            }
+        }
+
+        // Test read/write operations
+        async function testReadWrite() {
+            try {
+                // First ensure we're authenticated
+                let user = auth.currentUser;
+                if (!user) {
+                    log('🔑 Not authenticated, signing in anonymously...');
+                    const userCredential = await auth.signInAnonymously();
+                    user = userCredential.user;
+                    log(`✅ Authenticated as anonymous user: ${user.uid}`);
+                }
+
+                // Create a test document
+                const testData = {
+                    uid: user.uid,
+                    testTime: new Date().toISOString(),
+                    message: 'This is a test document',
+                    randomValue: Math.random()
+                };
+
+                log('📝 Writing test document...');
+                await db.collection('test').doc(user.uid).set(testData);
+                log('✅ Test document written successfully');
+
+                // Read the document back
+                log('📖 Reading test document...');
+                const docRef = db.collection('test').doc(user.uid);
+                const docSnap = await docRef.get();
+                
+                if (docSnap.exists) {
+                    log('✅ Document read successfully:');
+                    log(JSON.stringify(docSnap.data(), null, 2));
+                } else {
+                    log('❌ Document does not exist after writing', true);
+                }
+
+            } catch (error) {
+                log(`❌ Error during read/write test: ${error.message}`, true);
+                log(`Error code: ${error.code}`, true);
+            }
+        }
+
+        // Event listeners
+        testConnectionBtn.addEventListener('click', testConnection);
+        testReadWriteBtn.addEventListener('click', testReadWrite);
+        clearLogBtn.addEventListener('click', clearLog);
+
+        // Initial log
+        log('Firestore Test Console - Ready');
+        log('Click "Test Firestore Connection" to begin');
+    </script>
+</body>
+</html>

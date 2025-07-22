@@ -401,15 +401,18 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
               {user ? (
                 <div className="space-y-4">
                   <div className="flex items-center px-4 py-3">
-                    <Avatar className="h-10 w-10">
-                      {user.photoURL ? (
-                        <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
-                      ) : (
-                        <AvatarFallback className="text-sm">
-                          {getInitials(user.displayName || user?.email)}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
+                    <div className="relative">
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-brand-accent to-brand-accent-dark opacity-50 transition-opacity duration-300 animate-pulse" />
+                      <Avatar className="h-10 w-10 relative ring-2 ring-brand-accent ring-offset-2 ring-offset-gray-900 transition-all duration-300">
+                        {user.photoURL ? (
+                          <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
+                        ) : (
+                          <AvatarFallback className="text-sm">
+                            {getInitials(user.displayName || user?.email)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                    </div>
                     <div className="ml-3">
                       <p className="text-sm font-medium text-white">
                         {user.displayName || 'User'}
@@ -445,9 +448,9 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                     closeMenu();
                   }}
                   className="w-full text-center px-6 py-4 text-base font-semibold text-[#2d1b69] bg-[hsl(var(--brand-accent))] rounded-lg transition-all duration-300 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 touch-manipulation min-h-[48px] active:scale-95 active:bg-[hsl(var(--brand-accent-dark))]"
-                  aria-label="Login to your account"
+                  aria-label="Login or sign up for an account"
                 >
-                  Login
+                  Login / Sign Up
                 </button>
               )}
             </div>
@@ -493,18 +496,21 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="relative h-10 w-10 rounded-full ml-2 hover:bg-gray-800 focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-800"
+                      className="relative h-10 w-10 rounded-full ml-2 hover:bg-gray-800 focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-800 group"
                       aria-label="User menu"
                     >
-                      <Avatar className="h-8 w-8">
-                        {user.photoURL ? (
-                          <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
-                        ) : (
-                          <AvatarFallback className="text-xs">
-                            {getInitials(user.displayName || user?.email)}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
+                      <div className="relative">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-brand-accent to-brand-accent-dark opacity-50 transition-opacity duration-300 animate-pulse" />
+                        <Avatar className="h-8 w-8 relative ring-2 ring-brand-accent ring-offset-2 ring-offset-gray-800 transition-all duration-300">
+                          {user.photoURL ? (
+                            <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
+                          ) : (
+                            <AvatarFallback className="text-xs">
+                              {getInitials(user.displayName || user?.email)}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                      </div>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -535,7 +541,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                     'px-6 py-2.5 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-brand-accent'
                   )}
                 >
-                  Login
+                  Login / Sign Up
                 </button>
               )}
             </div>
