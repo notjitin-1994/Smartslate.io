@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion';
 import { TrendingUp, BrainCircuit, Award, Link as LinkIcon, Clock, Info, Briefcase, GraduationCap, User, ArrowLeft, ArrowDown, ArrowRight } from 'lucide-react';
 import Tooltip from '../Tooltip';
-import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 interface ROICalculatorProps {
   onRevealNext: () => void;
@@ -26,7 +26,7 @@ const Reveal = ({ children, delay = 0, threshold = 0.1, className = '' }: { chil
         transform: isIntersecting ? 'translateY(0)' : 'translateY(20px)',
     }), [delay, isIntersecting]);
 
-    return <div ref={ref as React.RefObject<HTMLDivElement>} style={style} className={className}>{children}</div>;
+    return <div ref={ref} style={style} className={className}>{children}</div>;
 };
 
 /**
