@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "smartslatesite-app"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }
