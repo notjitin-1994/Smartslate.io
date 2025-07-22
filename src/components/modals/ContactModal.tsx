@@ -105,7 +105,6 @@ const ContactModal: React.FC<ContactModalProps> = ({
     }
     
     // Here you would typically send the form data to your backend
-    console.log('Form submitted:', formState);
     setIsSubmitted(true);
   };
 

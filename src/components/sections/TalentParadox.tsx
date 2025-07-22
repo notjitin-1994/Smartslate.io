@@ -146,7 +146,6 @@ export const TalentParadox: React.FC<TalentParadoxProps> = ({ onRevealNext }) =>
   }, [isVisible, data]);
 
   const activeData = useMemo(() => {
-    console.log('Active section changed to:', activeSection);
     return Object.values(data).find(item => item.key === activeSection) || data.perception;
   }, [activeSection, data]);
 

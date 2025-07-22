@@ -47,11 +47,6 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
-      console.log('Login attempt with:', { 
-        email, 
-        password, 
-        phone: activeTab === 'phone' ? phone : undefined 
-      });
       setIsLoading(false);
     }, 1500);
   };

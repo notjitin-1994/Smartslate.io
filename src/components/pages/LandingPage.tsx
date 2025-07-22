@@ -17,7 +17,6 @@ const LandingPage: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Could not parse revealed sections from session storage', error);
     }
     return {
       talentParadox: false,

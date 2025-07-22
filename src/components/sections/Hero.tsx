@@ -22,7 +22,8 @@ export const Hero: React.FC<HeroProps> = ({ onRevealNext }) => {
 
 
   const initStars = (width: number, height: number) => {
-    const density = 2000; // Stars per million pixels
+    const isMobile = window.innerWidth < 768;
+    const density = isMobile ? 3000 : 2000; // Stars per million pixels
     const count = Math.floor((width * height) / density);
     
     stars.current = Array.from({ length: count }, () => ({
@@ -100,11 +101,89 @@ export const Hero: React.FC<HeroProps> = ({ onRevealNext }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
+    let isVisible = true;
+    
     const { width, height } = canvas.getBoundingClientRect();
     initStars(width, height);
     
-    // Start animation
-    animate();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible && !animationRef.current) {
+          animate();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(canvas);
+    
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    const optimizedAnimate = () => {
+      if (!isVisible || prefersReducedMotion) return;
+      
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      const { width, height } = canvas.getBoundingClientRect();
+      
+      // Set canvas size to match display size
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
+      
+      // Draw gradient background that matches the website's background
+      const rootStyles = getComputedStyle(document.documentElement);
+      const bgColor = rootStyles.getPropertyValue('--background').trim();
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, 'rgba(0,0,0,1)');
+      bgGradient.addColorStop(0.7, `hsl(${bgColor} / 0.9)`);
+      bgGradient.addColorStop(1, `hsl(${bgColor})`);
+      
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, width, height);
+      
+      // Draw stars with batched operations for better performance
+      ctx.globalCompositeOperation = 'lighter';
+      
+      stars.current.forEach(star => {
+        // Update star alpha for twinkling effect
+        star.alpha += star.speed * star.dir;
+        if (star.alpha > 0.9 || star.alpha < 0.3) {
+          star.dir *= -1;
+        }
+        
+        // Draw star
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        
+        // Create glow effect
+        const gradient = ctx.createRadialGradient(
+          star.x, star.y, 0,
+          star.x, star.y, star.r * 2
+        );
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${star.alpha})`);
+        gradient.addColorStop(0.7, `rgba(200, 220, 255, ${star.alpha * 0.7})`);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      });
+      
+      ctx.globalCompositeOperation = 'source-over';
+      animationRef.current = requestAnimationFrame(optimizedAnimate);
+    };
+    
+    // Start animation if motion is allowed
+    if (!prefersReducedMotion) {
+      optimizedAnimate();
+    }
     
     // Handle window resize
     const handleResize = () => {
@@ -117,6 +196,7 @@ export const Hero: React.FC<HeroProps> = ({ onRevealNext }) => {
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
+      observer.disconnect();
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
