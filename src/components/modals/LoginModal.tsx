@@ -142,11 +142,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       }
 
       // Simulate API call
-      console.log('Submitting:', {
-        authMode,
-        authMethod,
-        ...formData,
-      });
 
       setTimeout(() => {
         setIsLoading(false);
@@ -350,7 +345,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <div className="mt-6 grid grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Google')}
+                  onClick={() => {/* Login with Google */}}
                   className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
                   title="Sign in with Google"
                 >
@@ -362,7 +357,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Microsoft')}
+                  onClick={() => {/* Login with Microsoft */}}
                   className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
                   title="Sign in with Microsoft"
                 >
@@ -374,7 +369,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
                 <button
                   type="button"
-                  onClick={() => console.log('Login with SSO')}
+                  onClick={() => {/* Login with SSO */}}
                   className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
                   title="Single Sign-On"
                 >
