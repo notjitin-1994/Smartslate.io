@@ -9,6 +9,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Loader } from './components/common/Loader';
 import ContactModal from './components/modals/ContactModal';
 import type { FormType } from './lib/formUtils';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Lazy load pages
 const MainLayout = lazy(() => import('./components/layout/MainLayout'));
@@ -58,32 +59,34 @@ const App = () => {
   return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ErrorBoundary>
-          <Suspense fallback={<Loader />}>
-            <Routes>
-              <Route element={<MainLayout />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/courses" element={<CoursesPage />} />
-                <Route path="/courses/ai-literacy" element={<AILiteracyIntro />} />
-                <Route path="/solutions" element={<SolutionsPage onContactClick={handleContactClick} />} />
-                <Route path="/smartslate-difference" element={<SmartslateDifference />} />
-                <Route path="/collaborate" element={<CollaboratePage onContactClick={handleContactClick} />} />
-              </Route>
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </ErrorBoundary>
-      </BrowserRouter>
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-      <ContactModal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
-        formType={modalFormType} 
-      />
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ErrorBoundary>
+            <Suspense fallback={<Loader />}>
+              <Routes>
+                <Route element={<MainLayout />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/courses" element={<CoursesPage />} />
+                  <Route path="/courses/ai-literacy" element={<AILiteracyIntro />} />
+                  <Route path="/solutions" element={<SolutionsPage onContactClick={handleContactClick} />} />
+                  <Route path="/smartslate-difference" element={<SmartslateDifference />} />
+                  <Route path="/collaborate" element={<CollaboratePage onContactClick={handleContactClick} />} />
+                </Route>
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
+        </BrowserRouter>
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+        <ContactModal 
+          isOpen={isModalOpen} 
+          onClose={handleCloseModal} 
+          formType={modalFormType} 
+        />
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
   );

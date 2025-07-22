@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { parsePhoneNumberFromString, AsYouType, CountryCode } from 'libphonenumber-js';
+import { authService } from '@/services/authService';
 
 // --- TYPE DEFINITIONS ---
 type AuthMode = 'login' | 'signup';
@@ -118,7 +119,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   );
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       setIsLoading(true);
       setError('');
@@ -141,17 +142,39 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         return;
       }
 
-      // Simulate API call
-      console.log('Submitting:', {
-        authMode,
-        authMethod,
-        ...formData,
-      });
-
-      setTimeout(() => {
+      try {
+        setError('');
+        
+        let result;
+        if (authMode === 'login') {
+          if (authMethod === 'email') {
+            result = await authService.signInWithEmail(formData.inputValue, formData.password);
+          } else {
+            setError('Phone authentication not yet implemented. Please use email.');
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          if (authMethod === 'email') {
+            result = await authService.signUpWithEmail(formData.inputValue, formData.password);
+          } else {
+            setError('Phone authentication not yet implemented. Please use email.');
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        if (result.error) {
+          setError(result.error);
+          setIsLoading(false);
+        } else {
+          setIsLoading(false);
+          onClose(); // Close modal on success
+        }
+      } catch (error: any) {
+        setError(error.message || 'Authentication failed');
         setIsLoading(false);
-        onClose(); // Close modal on success
-      }, 1000);
+      }
     },
     [authMode, authMethod, formData, countryInfo.isValid, onClose]
   );
@@ -350,8 +373,24 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <div className="mt-6 grid grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Google')}
-                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      setError('');
+                      const result = await authService.signInWithGoogle();
+                      if (result.error) {
+                        setError(result.error);
+                      } else {
+                        onClose();
+                      }
+                    } catch (error: any) {
+                      setError(error.message || 'Google authentication failed');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors disabled:opacity-50"
                   title="Sign in with Google"
                 >
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
@@ -362,8 +401,24 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Microsoft')}
-                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      setError('');
+                      const result = await authService.signInWithMicrosoft();
+                      if (result.error) {
+                        setError(result.error);
+                      } else {
+                        onClose();
+                      }
+                    } catch (error: any) {
+                      setError(error.message || 'Microsoft authentication failed');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors disabled:opacity-50"
                   title="Sign in with Microsoft"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 23 23" aria-hidden="true">
