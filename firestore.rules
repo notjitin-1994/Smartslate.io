@@ -1,0 +1,167 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isInstructor(instructorId) {
+      return isAuthenticated() && request.auth.uid == instructorId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isEnterpriseAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'enterprise_admin';
+    }
+    
+    function isInstructorOrAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['instructor', 'admin', 'enterprise_admin']);
+    }
+    
+    function isEnrolledInCourse(courseId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + courseId));
+    }
+
+    // Users collection - users can read/write their own data, admins can read all
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin() || isEnterpriseAdmin();
+      allow write: if isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Prevent users from changing their role unless they're admin
+      allow update: if isOwner(userId) && 
+        (!('role' in request.resource.data) || 
+         request.resource.data.role == resource.data.role ||
+         isAdmin());
+    }
+
+    // Courses collection
+    match /courses/{courseId} {
+      // Anyone can read published courses
+      allow read: if resource.data.isPublished == true || 
+                     isInstructor(resource.data.instructorId) || 
+                     isAdmin() || 
+                     isEnterpriseAdmin();
+      
+      // Only instructors can create courses
+      allow create: if isInstructorOrAdmin() && 
+                       request.auth.uid == request.resource.data.instructorId;
+      
+      // Only course instructor or admin can update/delete
+      allow update, delete: if isInstructor(resource.data.instructorId) || 
+                              isAdmin() || 
+                              isEnterpriseAdmin();
+    }
+
+    // Enrollments collection
+    match /enrollments/{enrollmentId} {
+      // Users can read their own enrollments, instructors can read enrollments for their courses
+      allow read: if isOwner(resource.data.userId) || 
+                     isInstructor(get(/databases/$(database)/documents/courses/$(resource.data.courseId)).data.instructorId) ||
+                     isAdmin() || 
+                     isEnterpriseAdmin();
+      
+      // Users can create enrollments for themselves
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.userId &&
+                       exists(/databases/$(database)/documents/courses/$(request.resource.data.courseId));
+      
+      // Users can update their own enrollment progress
+      allow update: if isOwner(resource.data.userId) && 
+                       request.auth.uid == request.resource.data.userId;
+      
+      // Only admins can delete enrollments
+      allow delete: if isAdmin() || isEnterpriseAdmin();
+    }
+
+    // User Analytics collection - users can only access their own analytics
+    match /userAnalytics/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin() || isEnterpriseAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Course Analytics collection - instructors can access analytics for their courses
+    match /courseAnalytics/{courseId} {
+      allow read: if isInstructor(get(/databases/$(database)/documents/courses/$(courseId)).data.instructorId) ||
+                     isAdmin() || 
+                     isEnterpriseAdmin();
+      
+      allow write: if isInstructor(get(/databases/$(database)/documents/courses/$(courseId)).data.instructorId) ||
+                      isAdmin() || 
+                      isEnterpriseAdmin();
+    }
+
+    // Course Reviews collection
+    match /courseReviews/{reviewId} {
+      // Anyone can read reviews for published courses
+      allow read: if isAuthenticated();
+      
+      // Users can create reviews for courses they're enrolled in
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.userId &&
+                       exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + request.resource.data.courseId));
+      
+      // Users can update/delete their own reviews
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // Discussion Forums collection (if implemented)
+    match /discussions/{discussionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isInstructorOrAdmin();
+      allow update: if isOwner(resource.data.userId); // For marking as read
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // System configuration (admin only)
+    match /systemConfig/{configId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Certificates collection
+    match /certificates/{certificateId} {
+      allow read: if isOwner(resource.data.userId) || 
+                     isInstructor(get(/databases/$(database)/documents/courses/$(resource.data.courseId)).data.instructorId) ||
+                     isAdmin();
+      
+      allow create, update: if isInstructorOrAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Payment records (sensitive data)
+    match /payments/{paymentId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin() || isEnterpriseAdmin();
+      allow create, update: if isAdmin() || isEnterpriseAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Audit logs (admin only)
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Default deny rule for any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

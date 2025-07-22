@@ -4,10 +4,11 @@ import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Loader } from './components/common/Loader';
 import ContactModal from './components/modals/ContactModal';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import type { FormType } from './lib/formUtils';
 
 // Lazy load pages
@@ -20,6 +21,23 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const SmartslateDifference = lazy(() => import('./components/pages/SmartslateDifference'));
 const CollaboratePage = lazy(() => import('./components/pages/CollaboratePage'));
 
+const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAuth?: boolean }> = ({ 
+  children, 
+  requireAuth = false 
+}) => {
+  const { currentUser, loading } = useAuth();
+  
+  if (loading) {
+    return <Loader />;
+  }
+  
+  if (requireAuth && !currentUser) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,7 +48,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => {
+const AppRoutes: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalFormType, setModalFormType] = useState<FormType>('standard');
 
@@ -56,18 +74,23 @@ const App = () => {
   }, []);
 
   return (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+    <>
       <BrowserRouter>
         <ErrorBoundary>
           <Suspense fallback={<Loader />}>
             <Routes>
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
-                <Route path="/courses" element={<CoursesPage />} />
-                <Route path="/courses/ai-literacy" element={<AILiteracyIntro />} />
+                <Route path="/courses" element={
+                  <ProtectedRoute>
+                    <CoursesPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/courses/ai-literacy" element={
+                  <ProtectedRoute requireAuth>
+                    <AILiteracyIntro />
+                  </ProtectedRoute>
+                } />
                 <Route path="/solutions" element={<SolutionsPage onContactClick={handleContactClick} />} />
                 <Route path="/smartslate-difference" element={<SmartslateDifference />} />
                 <Route path="/collaborate" element={<CollaboratePage onContactClick={handleContactClick} />} />
@@ -84,8 +107,21 @@ const App = () => {
         onClose={handleCloseModal} 
         formType={modalFormType} 
       />
-    </TooltipProvider>
-  </QueryClientProvider>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AppRoutes />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 };
 
