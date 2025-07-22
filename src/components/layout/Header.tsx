@@ -48,15 +48,15 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const navLinks: NavLinkType[] = [
     { 
       type: 'dropdown',
-      label: 'Products',
+      label: 'Solutions',
       items: [
         { path: '/courses', label: 'Pre-Built Courses' },
         { path: '/solutions', label: 'Explore Solutions' },
         { path: '#', label: 'Solara', disabled: true, tooltip: 'Coming Soon' }
       ]
     },
-    { path: '/smartslate-difference', label: 'The Smartslate Difference', gradient: true },
-    { path: '/collaborate', label: 'Collaborate & Partner' }
+    { path: '/smartslate-difference', label: 'Why Smartslate', gradient: true },
+    { path: '/collaborate', label: 'Partner With Us' }
   ];
 
   // Close dropdown when clicking outside
@@ -76,7 +76,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   // Navigation link classes
   const navLinkClasses = ({ isActive, gradient = false }: { isActive: boolean; gradient?: boolean }): string => {
     return cn(
-      'inline-flex items-center px-3 py-2 text-sm font-medium transition-colors',
+      'inline-flex items-center px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-800 rounded-md',
       isActive 
         ? 'text-white' 
         : gradient 
@@ -106,13 +106,14 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
           <button
             type="button"
             className={cn(
-              'products-menu-trigger inline-flex items-center px-3 py-2 text-sm font-medium',
+              'products-menu-trigger inline-flex items-center px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-800 rounded-md',
               isProductsOpen ? 'text-white' : 'text-gray-300 hover:text-white'
             )}
             onClick={() => setIsProductsOpen(!isProductsOpen)}
             onMouseEnter={() => setIsProductsOpen(true)}
             aria-expanded={isProductsOpen}
             aria-haspopup="true"
+            aria-label={`${item.label} menu`}
           >
             {item.label}
             <svg
@@ -137,7 +138,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                   key={dropdownItem.label}
                   to={dropdownItem.disabled ? '#' : dropdownItem.path}
                   className={({ isActive }) => cn(
-                    'block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700',
+                    'block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-inset rounded-md transition-colors',
                     dropdownItem.disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent',
                     isActive && 'bg-gray-700'
                   )}
@@ -150,6 +151,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                     }
                   }}
                   aria-disabled={dropdownItem.disabled}
+                  aria-label={dropdownItem.disabled ? `${dropdownItem.label} - Coming Soon` : dropdownItem.label}
                   title={dropdownItem.tooltip}
                 >
                   <div className="flex items-center justify-between">
@@ -281,9 +283,10 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                         e.preventDefault();
                         setIsProductsOpen(!isProductsOpen);
                       }}
-                      className="w-full flex items-center justify-between px-3 py-3 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-md transition-colors duration-200"
+                      className="w-full flex items-center justify-between px-4 py-4 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-md transition-colors duration-200 touch-manipulation min-h-[48px] active:bg-gray-700/50"
                       aria-expanded={isProductsOpen}
                       aria-controls="mobile-products-menu"
+                      aria-label={`${item.label} menu - ${isProductsOpen ? 'expanded' : 'collapsed'}`}
                     >
                       {item.label}
                       <svg
@@ -342,7 +345,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                     key={item.path}
                     to={item.path}
                     className={({ isActive }) => cn(
-                      'block w-full text-left px-3 py-3 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-md transition-colors duration-200',
+                      'block w-full text-left px-4 py-4 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-md transition-colors duration-200 touch-manipulation min-h-[48px] active:bg-gray-700/50',
                       isActive && 'bg-gray-800',
                       item.gradient && 'gradient-text'
                     )}
@@ -368,7 +371,8 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                   setIsLoginModalOpen(true);
                   closeMenu();
                 }}
-                className="w-full text-center px-6 py-3 text-base font-semibold text-[#2d1b69] bg-[hsl(var(--brand-accent))] rounded-lg transition-all duration-300 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5"
+                className="w-full text-center px-6 py-4 text-base font-semibold text-[#2d1b69] bg-[hsl(var(--brand-accent))] rounded-lg transition-all duration-300 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 touch-manipulation min-h-[48px] active:scale-95 active:bg-[hsl(var(--brand-accent-dark))]"
+                aria-label="Login to your account"
               >
                 Login
               </button>
@@ -381,6 +385,13 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
 
   return (
     <>
+      {/* Skip to main content link for accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-[60] px-4 py-2 bg-brand-accent text-gray-900 font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2"
+      >
+        Skip to main content
+      </a>
       <header className="fixed w-full z-50 bg-black/90 backdrop-blur-md border-b border-gray-700/50 shadow-2xl">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between h-16">
@@ -417,14 +428,14 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
             <div className="lg:hidden flex items-center">
               <button
                 onClick={toggleMenu}
-                className="hamburger-button inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white transition-colors duration-200"
+                className="hamburger-button inline-flex items-center justify-center p-3 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-200 touch-manipulation min-h-[44px] min-w-[44px] active:scale-95"
                 aria-expanded={isMenuOpen}
-                aria-label="Toggle menu"
+                aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               >
                 <div className="relative w-6 h-5 flex flex-col justify-between">
-                  <span className={`block h-0.5 w-full bg-current transform transition duration-300 ease-in-out ${isMenuOpen ? 'rotate-45 translate-y-[9px]' : ''}`} />
-                  <span className={`block h-0.5 w-full bg-current transform transition duration-300 ease-in-out ${isMenuOpen ? 'opacity-0' : ''}`} />
-                  <span className={`block h-0.5 w-full bg-current transform transition duration-300 ease-in-out ${isMenuOpen ? '-rotate-45 -translate-y-[9px]' : ''}`} />
+                  <span className={`block h-0.5 w-full bg-current transform transition-all duration-300 ease-in-out ${isMenuOpen ? 'rotate-45 translate-y-[9px] bg-brand-accent' : ''}`} />
+                  <span className={`block h-0.5 w-full bg-current transform transition-all duration-300 ease-in-out ${isMenuOpen ? 'opacity-0 scale-0' : ''}`} />
+                  <span className={`block h-0.5 w-full bg-current transform transition-all duration-300 ease-in-out ${isMenuOpen ? '-rotate-45 -translate-y-[9px] bg-brand-accent' : ''}`} />
                 </div>
               </button>
             </div>

@@ -87,11 +87,12 @@ export const FrameworkSection: React.FC<FrameworkSectionProps> = ({ onRevealNext
                 {solution.isExternal ? (
                   <a
                     href={solution.link}
-                    className="text-brand-accent font-medium hover:underline flex items-center group w-fit"
+                    className="text-brand-accent font-medium hover:underline flex items-center group w-fit focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-900 rounded-md px-2 py-1 touch-manipulation min-h-[44px] transition-all duration-300"
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={`Contact us about ${solution.title} - Opens in new tab`}
                   >
-                    Contact us
+                    Get Started Today
                     <svg 
                       className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" 
                       fill="none" 
@@ -104,9 +105,10 @@ export const FrameworkSection: React.FC<FrameworkSectionProps> = ({ onRevealNext
                 ) : (
                   <Link
                     to={solution.link}
-                    className="text-brand-accent font-medium hover:underline flex items-center group w-fit"
+                    className="text-brand-accent font-medium hover:underline flex items-center group w-fit focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-900 rounded-md px-2 py-1 touch-manipulation min-h-[44px] transition-all duration-300"
+                    aria-label={`Learn more about ${solution.title}`}
                   >
-                    Learn more
+                    Explore Solution
                     <svg 
                       className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" 
                       fill="none" 
@@ -126,9 +128,10 @@ export const FrameworkSection: React.FC<FrameworkSectionProps> = ({ onRevealNext
           <div className="mt-12">
             <button 
               onClick={onDiscoverROI}
-              className="px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 group hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5"
+              className="px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 group hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-900 touch-manipulation min-h-[44px] active:scale-95"
+              aria-label="Calculate your return on investment - See the business impact"
             >
-              <span>Discover the ROI</span>
+              <span>Calculate Your Business Impact</span>
               <svg 
                 className="w-5 h-5 arrow-bounce group-hover:translate-y-1" 
                 fill="none" 

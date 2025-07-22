@@ -32,12 +32,24 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   return (
     <motion.div 
       ref={ref}
-      className="group relative cursor-pointer rounded-xl border border-white/10 p-4 overflow-hidden transition-all duration-300 hover:border-brand-accent/40"
+      className="group relative cursor-pointer rounded-xl border border-white/10 p-4 overflow-hidden transition-all duration-300 hover:border-brand-accent/40 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-900 touch-manipulation"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setTimeout(() => setIsHovered(false), 150)}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
+      tabIndex={0}
+      role="button"
+      aria-label={`${title} course card - ${description}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setIsHovered(true);
+          setTimeout(() => setIsHovered(false), 300);
+        }
+      }}
     >
       <CourseBackgroundAnimation 
         color={isHovered ? 'var(--brand-accent)' : 'var(--text-secondary)'}

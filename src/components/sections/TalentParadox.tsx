@@ -34,12 +34,19 @@ const StatIconCard: React.FC<StatIconCardProps> = ({
   interactive = true
 }) => (
   <div 
-    className={`stat-icon-card group ${!interactive ? 'non-interactive' : ''}`}
+    className={`stat-icon-card group ${!interactive ? 'non-interactive' : ''} ${interactive ? 'focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-900 rounded-lg transition-all' : ''}`}
     data-active={active}
     onClick={interactive ? onClick : undefined} 
     role={interactive ? "button" : undefined} 
     tabIndex={interactive ? 0 : -1} 
-    onKeyDown={interactive ? (e) => (e.key === 'Enter' || e.key === ' ') && onClick() : undefined}
+    onKeyDown={interactive ? (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick();
+      }
+    } : undefined}
+    aria-label={interactive ? `View ${label} details - ${Math.ceil(value)}%` : undefined}
+    aria-pressed={interactive ? active : undefined}
   >
     <div className="icon-wrapper">
       {React.cloneElement(icon as React.ReactElement, {
@@ -250,7 +257,8 @@ export const TalentParadox: React.FC<TalentParadoxProps> = ({ onRevealNext }) =>
           <div className="mt-8 text-left">
             <button 
               onClick={onRevealNext}
-              className="px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 group hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5"
+              className="px-8 py-3 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 group hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-gray-900"
+              aria-label="Discover our Framework - Learn about our solutions"
             >
               <span>Discover our Framework</span>
               <svg 
