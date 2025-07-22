@@ -152,7 +152,7 @@ const PersonaSelector = ({ onSelect }: { onSelect: (persona: string) => void }) 
             icon: GraduationCap,
             description: (
                 <>
-                    <span className="highlight-text">Student employability</span> &{' '}
+                    <span className="highlight-text">Student employability</span>{' & '}
                     <span className="highlight-text">industry partnerships</span>
                 </>
             ),
@@ -169,7 +169,7 @@ const PersonaSelector = ({ onSelect }: { onSelect: (persona: string) => void }) 
             description: (
                 <>
                     <span className="highlight-text">ROI</span>,{' '}
-                    <span className="highlight-text">productivity</span> &{' '}
+                    <span className="highlight-text">productivity</span>{' & '}
                     <span className="highlight-text">talent retention</span>
                 </>
             ),
@@ -185,7 +185,7 @@ const PersonaSelector = ({ onSelect }: { onSelect: (persona: string) => void }) 
             icon: User,
             description: (
                 <>
-                    <span className="highlight-text">Career acceleration</span> &{' '}
+                    <span className="highlight-text">Career acceleration</span>{' & '}
                     <span className="highlight-text">dream job readiness</span>
                 </>
             ),
