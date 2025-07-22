@@ -12,9 +12,10 @@ type Star = {
 interface StarryNightProps {
   className?: string;
   style?: React.CSSProperties;
+  backgroundColor?: string; // Optional solid background color
 }
 
-export const StarryNight: React.FC<StarryNightProps> = ({ className = '', style = {} }) => {
+export const StarryNight: React.FC<StarryNightProps> = ({ className = '', style = {}, backgroundColor }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stars = useRef<Star[]>([]);
   const animationRef = useRef<number>();
@@ -51,16 +52,20 @@ export const StarryNight: React.FC<StarryNightProps> = ({ className = '', style 
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
     
-    // Draw gradient background that matches the website's background
-    const rootStyles = getComputedStyle(document.documentElement);
-    const bgColor = rootStyles.getPropertyValue('--background').trim();
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, 'rgba(0,0,0,1)');
-    gradient.addColorStop(0.7, `hsl(${bgColor} / 0.9)`);
-    gradient.addColorStop(1, `hsl(${bgColor})`);
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
+    // Draw background: solid color if provided, else gradient
+    if (backgroundColor) {
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, width, height);
+    } else {
+      const rootStyles = getComputedStyle(document.documentElement);
+      const bgColor = rootStyles.getPropertyValue('--background').trim();
+      const gradient = ctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, 'rgba(0,0,0,1)');
+      gradient.addColorStop(0.7, `hsl(${bgColor} / 0.9)`);
+      gradient.addColorStop(1, `hsl(${bgColor})`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+    }
     
     // Draw stars
     stars.current.forEach(star => {

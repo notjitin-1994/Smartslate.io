@@ -139,31 +139,45 @@ const LearningBlueprintAnimation: React.FC = () => {
   const renderConnections = () => {
     const connections: JSX.Element[] = [];
     const rendered = new Set<string>();
+    const centerX = dimensions.width / 2;
+    const centerY = dimensions.height / 2;
 
+    // Lines from center to every node
+    nodes.forEach((node, i) => {
+      connections.push(
+        <line
+          key={`center-to-${node.id}`}
+          x1={centerX}
+          y1={centerY}
+          x2={node.x}
+          y2={node.y}
+          stroke="#4F46E5"
+          strokeWidth="2"
+          opacity="1"
+        />
+      );
+    });
+
+    // Existing node-to-node connections
     nodes.forEach((node) => {
       node.connections.forEach((targetId, index) => {
         const targetNode = nodes.find((n) => n.id === targetId);
         if (!targetNode) return;
-
         const connectionId = [node.id, targetId].sort().join('-');
         if (rendered.has(connectionId)) return;
         rendered.add(connectionId);
-
         connections.push(
-          <motion.path
+          <path
             key={connectionId}
             d={`M${node.x},${node.y} Q${(node.x + targetNode.x) / 2},${(node.y + targetNode.y) / 2 + 30} ${targetNode.x},${targetNode.y}`}
-            stroke="currentColor"
-            strokeWidth="1.5"
+            stroke="#4F46E5"
+            strokeWidth="2"
             fill="none"
-            variants={connectionVariants}
-            custom={index}
-            className="text-gray-400"
+            opacity="1"
           />
         );
       });
     });
-
     return connections;
   };
 
@@ -182,52 +196,47 @@ const LearningBlueprintAnimation: React.FC = () => {
 
         {/* Nodes */}
         {nodes.map((node, index) => (
-          <motion.g
+          <g
             key={node.id}
-            custom={index}
-            variants={nodeVariants}
-            initial="hidden"
-            animate={controls}
-            whileHover={nodeVariants.hover(node) as any}
-            onHoverStart={() => setActiveNode(node.id)}
-            onHoverEnd={() => setActiveNode(null)}
             className="cursor-pointer"
           >
-            <circle
+            <motion.circle
               cx={node.x}
               cy={node.y}
               r={node.level / 8}
-              fill={node.color}
-              className="transition-all duration-300"
+              fill="#4F46E5"
+              stroke="#4F46E5"
+              strokeWidth="2"
+              opacity="1"
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 2, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut', delay: index * 0.1 }}
             />
             <circle
               cx={node.x}
               cy={node.y}
               r={node.level / 8 + 8}
               fill="transparent"
-              stroke={node.color}
+              stroke="#4F46E5"
               strokeWidth="1"
-              strokeOpacity="0.3"
-              className="transition-all duration-500"
+              opacity="1"
             />
-          </motion.g>
+          </g>
         ))}
 
         {/* Node labels */}
         {nodes.map((node) => (
-          <motion.text
+          <text
             key={`${node.id}-label`}
             x={node.x}
             y={node.y + 24}
             textAnchor="middle"
-            fill="currentColor"
-            className={`text-xs font-medium transition-all duration-300 ${
-              activeNode === node.id ? 'opacity-100 scale-110' : 'opacity-70'
-            }`}
-            style={{ color: node.color }}
+            fill="#4F46E5"
+            fontWeight="bold"
+            fontSize="14"
+            opacity="1"
           >
             {node.name}
-          </motion.text>
+          </text>
         ))}
       </motion.svg>
     </div>
