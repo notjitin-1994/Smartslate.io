@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { authService } from '@/services/authService';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'email' | 'phone'>('email');
   const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
 
   // Close modal when clicking outside, pressing Escape, or when unmounting
   useEffect(() => {
@@ -42,18 +44,32 @@ const LoginPage: React.FC = () => {
     navigate(-1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login attempt with:', { 
-        email, 
-        password, 
-        phone: activeTab === 'phone' ? phone : undefined 
-      });
+    setError('');
+
+    try {
+      let result;
+      if (activeTab === 'email') {
+        result = await authService.signInWithEmail(email, password);
+      } else {
+        setError('Phone authentication not yet implemented. Please use email.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (result.error) {
+        setError(result.error);
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+        navigate('/dashboard'); // Redirect on success
+      }
+    } catch (error: any) {
+      setError(error.message || 'Authentication failed');
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -101,7 +117,24 @@ const LoginPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                className="w-full inline-flex justify-center items-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                onClick={async () => {
+                  try {
+                    setIsLoading(true);
+                    setError('');
+                    const result = await authService.signInWithGoogle();
+                    if (result.error) {
+                      setError(result.error);
+                    } else {
+                      navigate('/dashboard');
+                    }
+                  } catch (error: any) {
+                    setError(error.message || 'Google authentication failed');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                disabled={isLoading}
+                className="w-full inline-flex justify-center items-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-50"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path
@@ -125,7 +158,24 @@ const LoginPage: React.FC = () => {
               </button>
               <button
                 type="button"
-                className="w-full inline-flex justify-center items-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                onClick={async () => {
+                  try {
+                    setIsLoading(true);
+                    setError('');
+                    const result = await authService.signInWithMicrosoft();
+                    if (result.error) {
+                      setError(result.error);
+                    } else {
+                      navigate('/dashboard');
+                    }
+                  } catch (error: any) {
+                    setError(error.message || 'Microsoft authentication failed');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                disabled={isLoading}
+                className="w-full inline-flex justify-center items-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-50"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 23 23" fill="currentColor">
                   <path d="M1 1h21v21H1V1zm17.5 17.5h-14v-14h14v14z" />
@@ -256,6 +306,12 @@ const LoginPage: React.FC = () => {
                   </a>
                 </div>
               </div>
+
+              {error && (
+                <div className="mt-4">
+                  <p className="text-sm text-red-400 bg-red-900/20 p-3 rounded-lg text-center">{error}</p>
+                </div>
+              )}
 
               <div>
                 <button

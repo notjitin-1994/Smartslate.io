@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import LoginModal from '@/components/modals/LoginModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/services/authService';
 
 type NavItem = {
   path: string;
@@ -29,6 +31,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProductsOpen, setIsProductsOpen] = useState(false);
@@ -402,15 +405,40 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                 {navLinks.map((item) => renderNavItem(item))}
               </nav>
               
-              {/* Login Button */}
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className={cn(
-                  'px-6 py-2.5 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-brand-accent'
-                )}
-              >
-                Login
-              </button>
+              {/* Auth Section */}
+              {loading ? (
+                <div className="px-6 py-2.5 text-gray-400">Loading...</div>
+              ) : user ? (
+                <div className="flex items-center space-x-4">
+                  <span className="text-gray-300">
+                    {user.displayName || user.email}
+                  </span>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await authService.signOut();
+                        navigate('/');
+                      } catch (error) {
+                        console.error('Logout failed:', error);
+                      }
+                    }}
+                    className={cn(
+                      'px-4 py-2 bg-gray-700 text-white font-medium rounded-lg transition-all duration-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500'
+                    )}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className={cn(
+                    'px-6 py-2.5 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-brand-accent'
+                  )}
+                >
+                  Login
+                </button>
+              )}
             </div>
 
             {/* Mobile menu button */}
