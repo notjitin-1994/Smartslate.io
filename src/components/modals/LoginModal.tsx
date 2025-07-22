@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { parsePhoneNumberFromString, AsYouType, CountryCode } from 'libphonenumber-js';
+import { signInWithEmail, signUpWithEmail, signInWithGoogle } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 // --- TYPE DEFINITIONS ---
 type AuthMode = 'login' | 'signup';
@@ -118,7 +120,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   );
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       setIsLoading(true);
       setError('');
@@ -141,17 +143,31 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         return;
       }
 
-      // Simulate API call
-      console.log('Submitting:', {
-        authMode,
-        authMethod,
-        ...formData,
-      });
+      try {
+        let result;
+        
+        if (authMethod === 'email') {
+          if (authMode === 'signup') {
+            result = await signUpWithEmail(formData.email, formData.password);
+          } else {
+            result = await signInWithEmail(formData.email, formData.password);
+          }
+        } else {
+          setError('Phone authentication coming soon');
+          setIsLoading(false);
+          return;
+        }
 
-      setTimeout(() => {
+        if (result.success) {
+          onClose();
+        } else {
+          setError(result.error || 'Authentication failed');
+        }
+      } catch (error) {
+        setError('An unexpected error occurred');
+      } finally {
         setIsLoading(false);
-        onClose(); // Close modal on success
-      }, 1000);
+      }
     },
     [authMode, authMethod, formData, countryInfo.isValid, onClose]
   );
@@ -350,8 +366,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <div className="mt-6 grid grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Google')}
-                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
+                  onClick={async () => {
+                    setIsLoading(true);
+                    const result = await signInWithGoogle();
+                    if (result.success) {
+                      onClose();
+                    } else {
+                      setError(result.error || 'Google sign-in failed');
+                    }
+                    setIsLoading(false);
+                  }}
+                  disabled={isLoading}
+                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors disabled:opacity-50"
                   title="Sign in with Google"
                 >
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
