@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { parsePhoneNumberFromString, AsYouType, CountryCode } from 'libphonenumber-js';
+import { useAuth } from '../../contexts/AuthContext';
+import { ConfirmationResult } from 'firebase/auth';
 
 // --- TYPE DEFINITIONS ---
 type AuthMode = 'login' | 'signup';
@@ -27,9 +29,27 @@ interface FormData {
   inputValue: string;
 }
 
+interface PhoneVerificationState {
+  confirmationResult: ConfirmationResult | null;
+  verificationCode: string;
+  isVerifying: boolean;
+}
+
 // --- COMPONENT ---
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   // --- STATE MANAGEMENT ---
+  const { 
+    login, 
+    signup, 
+    loginWithGoogle, 
+    loginWithMicrosoft, 
+    sendPhoneVerification, 
+    verifyPhoneCode, 
+    error: authError, 
+    loading: authLoading,
+    clearError 
+  } = useAuth();
+  
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [authMethod, setAuthMethod] = useState<AuthMethod>('email');
   const [formData, setFormData] = useState<FormData>({
@@ -42,6 +62,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [phoneVerification, setPhoneVerification] = useState<PhoneVerificationState>({
+    confirmationResult: null,
+    verificationCode: '',
+    isVerifying: false,
+  });
   const [countryInfo, setCountryInfo] = useState<CountryInfo>({
     flag: '🌐',
     code: 'US',
@@ -75,8 +100,20 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       confirmPassword: '',
       inputValue: '',
     });
+    setCountryInfo({
+      flag: '🌐',
+      code: 'US',
+      callingCode: '',
+      isValid: false,
+    });
+    setPhoneVerification({
+      confirmationResult: null,
+      verificationCode: '',
+      isVerifying: false,
+    });
     setError('');
-  }, []);
+    clearError();
+  }, [clearError]);
 
   const handleAuthModeToggle = useCallback((mode: AuthMode) => {
     setAuthMode(mode);
@@ -118,42 +155,66 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   );
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       setIsLoading(true);
       setError('');
+      clearError();
 
-      if (authMode === 'signup' && formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
+      try {
+        if (authMode === 'signup' && formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          setIsLoading(false);
+          return;
+        }
+
+        if (authMethod === 'email' && !formData.email) {
+          setError('Please enter a valid email address');
+          setIsLoading(false);
+          return;
+        }
+
+        if (authMethod === 'phone' && (!formData.phone || !countryInfo.isValid)) {
+          setError('Please enter a valid phone number');
+          setIsLoading(false);
+          return;
+        }
+
+        if (authMethod === 'phone') {
+          if (!phoneVerification.confirmationResult) {
+            const confirmationResult = await sendPhoneVerification(formData.phone);
+            setPhoneVerification(prev => ({
+              ...prev,
+              confirmationResult,
+              isVerifying: true
+            }));
+            setError('Verification code sent to your phone. Please enter it below.');
+            setIsLoading(false);
+            return;
+          } else {
+            if (!phoneVerification.verificationCode) {
+              setError('Please enter the verification code');
+              setIsLoading(false);
+              return;
+            }
+            await verifyPhoneCode(phoneVerification.confirmationResult, phoneVerification.verificationCode);
+          }
+        } else {
+          if (authMode === 'login') {
+            await login(formData.email, formData.password);
+          } else {
+            await signup(formData.email, formData.password, formData.fullName);
+          }
+        }
+
+        resetForm();
+        onClose();
+      } catch (error) {
+        console.error('Authentication error:', error);
         setIsLoading(false);
-        return;
       }
-
-      if (authMethod === 'email' && !formData.email) {
-        setError('Please enter a valid email address');
-        setIsLoading(false);
-        return;
-      }
-
-      if (authMethod === 'phone' && (!formData.phone || !countryInfo.isValid)) {
-        setError('Please enter a valid phone number');
-        setIsLoading(false);
-        return;
-      }
-
-      // Simulate API call
-      console.log('Submitting:', {
-        authMode,
-        authMethod,
-        ...formData,
-      });
-
-      setTimeout(() => {
-        setIsLoading(false);
-        onClose(); // Close modal on success
-      }, 1000);
     },
-    [authMode, authMethod, formData, countryInfo.isValid, onClose]
+    [authMode, authMethod, formData, countryInfo.isValid, phoneVerification, onClose, login, signup, sendPhoneVerification, verifyPhoneCode, resetForm, clearError]
   );
 
   // --- RENDER LOGIC ---
@@ -316,20 +377,49 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 </div>
               )}
 
-              {error && (
-                <p className="text-sm text-red-400 bg-red-900/20 p-3 rounded-lg text-center">{error}</p>
+              {phoneVerification.isVerifying && (
+                <div>
+                  <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-300">
+                    Verification Code
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="verificationCode"
+                      name="verificationCode"
+                      type="text"
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      value={phoneVerification.verificationCode}
+                      onChange={(e) => setPhoneVerification(prev => ({
+                        ...prev,
+                        verificationCode: e.target.value
+                      }))}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-700 rounded-lg shadow-sm placeholder-gray-500 focus:outline-none focus:ring-brand-accent/50 focus:border-brand-accent/50 sm:text-sm bg-gray-800/50"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {(error || authError) && (
+                <p className="text-sm text-red-400 bg-red-900/20 p-3 rounded-lg text-center">
+                  {error || authError}
+                </p>
               )}
 
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || authLoading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-accent hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 disabled:opacity-50 transition-colors"
               >
-                {isLoading ? (
+                {(isLoading || authLoading) ? (
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
+                ) : phoneVerification.isVerifying ? (
+                  'Verify Code'
+                ) : authMethod === 'phone' && !phoneVerification.confirmationResult ? (
+                  'Send Code'
                 ) : (
                   authMode === 'login' ? 'Sign In' : 'Create Account'
                 )}
@@ -350,8 +440,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <div className="mt-6 grid grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Google')}
-                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
+                  onClick={async () => {
+                    try {
+                      await loginWithGoogle();
+                      resetForm();
+                      onClose();
+                    } catch (error) {
+                      console.error('Google login error:', error);
+                    }
+                  }}
+                  disabled={authLoading}
+                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 disabled:opacity-50 transition-colors"
                   title="Sign in with Google"
                 >
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
@@ -362,8 +461,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Microsoft')}
-                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
+                  onClick={async () => {
+                    try {
+                      await loginWithMicrosoft();
+                      resetForm();
+                      onClose();
+                    } catch (error) {
+                      console.error('Microsoft login error:', error);
+                    }
+                  }}
+                  disabled={authLoading}
+                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 disabled:opacity-50 transition-colors"
                   title="Sign in with Microsoft"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 23 23" aria-hidden="true">
