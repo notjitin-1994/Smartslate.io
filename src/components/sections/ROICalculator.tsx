@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, BrainCircuit, Award, Link as LinkIcon, Clock, Info, Briefcase, GraduationCap, User, ArrowLeft, ArrowDown, ArrowRight } from 'lucide-react';
 import Tooltip from '../Tooltip';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 interface ROICalculatorProps {
   onRevealNext: () => void;
@@ -9,34 +10,6 @@ interface ROICalculatorProps {
 
 // --- HELPER HOOKS & COMPONENTS ---
 
-/**
- * Custom hook for observing when an element enters the viewport.
- * @param {object} options - IntersectionObserver options.
- * @returns {[React.RefObject<HTMLElement>, boolean]} - A ref and a boolean indicating intersection.
- */
-const useIntersectionObserver = (options: IntersectionObserverInit) => {
-    const [isIntersecting, setIsIntersecting] = useState(false);
-    const ref = useRef<HTMLElement>(null);
-
-    useEffect(() => {
-        const element = ref.current;
-        if (!element) return;
-
-        const observer = new IntersectionObserver(([entry]) => {
-            if (entry.isIntersecting) {
-                setIsIntersecting(true);
-                observer.unobserve(element);
-            }
-        }, options);
-
-        observer.observe(element);
-        return () => {
-            if (element) observer.unobserve(element);
-        };
-    }, [options]);
-
-    return [ref, isIntersecting];
-};
 
 /**
  * A component that reveals its children with a fade-in and slide-up animation.
@@ -46,14 +19,14 @@ const Reveal = ({ children, delay = 0, threshold = 0.1, className = '' }: { chil
     const options = useMemo(() => ({ threshold }), [threshold]);
     const [ref, isIntersecting] = useIntersectionObserver(options);
 
-    const style: React.CSSProperties = {
+    const style: React.CSSProperties = useMemo(() => ({
         transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
         transitionDelay: `${delay}ms`,
         opacity: isIntersecting ? 1 : 0,
         transform: isIntersecting ? 'translateY(0)' : 'translateY(20px)',
-    };
+    }), [delay, isIntersecting]);
 
-    return <div ref={ref as React.RefObject<HTMLDivElement>} style={style} className={className}>{children}</div>;
+    return <div ref={ref} style={style} className={className}>{children}</div>;
 };
 
 /**
@@ -145,7 +118,7 @@ const MetricCard = ({ icon: Icon, title, value, unit = '', description, source, 
 const PersonaSelector = ({ onSelect }: { onSelect: (persona: string) => void }) => {
     const [hoveredCard, setHoveredCard] = useState<string | null>(null);
     
-    const personas = [
+    const personas = useMemo(() => [
         {
             id: 'educator',
             title: 'Academic Leader',
@@ -195,7 +168,7 @@ const PersonaSelector = ({ onSelect }: { onSelect: (persona: string) => void }) 
             bgColor: 'bg-cyan-500/10',
             hoverBgColor: 'bg-cyan-500/20',
         },
-    ];
+    ], []);
 
     return (
         <Reveal>
@@ -315,26 +288,26 @@ export const ROICalculator: React.FC<ROICalculatorProps> = ({ onRevealNext: onRe
     const [currentSalary, setCurrentSalary] = useState(180000);
 
     // --- Business Metric Calculations ---
-    const retentionSavings = (teamSize * 0.20 * 0.50) * 75000;
-    const productivityBoost = Math.floor(teamSize * 2000 * 0.25);
-    const aiRevenueLift = teamSize * 10000;
+    const retentionSavings = useMemo(() => (teamSize * 0.20 * 0.50) * 75000, [teamSize]);
+    const productivityBoost = useMemo(() => Math.floor(teamSize * 2000 * 0.25), [teamSize]);
+    const aiRevenueLift = useMemo(() => teamSize * 10000, [teamSize]);
 
     const animatedSavings = useAnimatedCounter(retentionSavings);
     const animatedProductivity = useAnimatedCounter(productivityBoost);
     const animatedRevenue = useAnimatedCounter(aiRevenueLift);
 
     // --- Education Metric Calculations ---
-    const employabilityBoost = Math.round(studentCount * 0.15);
+    const employabilityBoost = useMemo(() => Math.round(studentCount * 0.15), [studentCount]);
     const fasterPlacement = 6;
-    const industryPartnerships = Math.ceil(studentCount / 100);
+    const industryPartnerships = useMemo(() => Math.ceil(studentCount / 100), [studentCount]);
 
     const animatedEmployability = useAnimatedCounter(employabilityBoost);
     const animatedPartnerships = useAnimatedCounter(industryPartnerships);
 
     // --- Student Metric Calculations ---
-    const salaryIncrease = currentSalary * 0.22; // 22% average increase
+    const salaryIncrease = useMemo(() => currentSalary * 0.22, [currentSalary]); // 22% average increase
     const promotionTime = 18; // 18 months average
-    const fasterPromotion = promotionTime * 0.35; // 35% faster
+    const fasterPromotion = useMemo(() => promotionTime * 0.35, []); // 35% faster
     const jobOpportunities = 5; // 5x multiplier
 
     const animatedSalary = useAnimatedCounter(salaryIncrease);
