@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import LoginModal from '@/components/modals/LoginModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 type NavItem = {
   path: string;
@@ -28,6 +29,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -363,15 +365,40 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
             })}
             
             <div className="pt-4 pb-2 mt-4 border-t border-gray-800">
-              <button
-                onClick={() => {
-                  setIsLoginModalOpen(true);
-                  closeMenu();
-                }}
-                className="w-full text-center px-6 py-3 text-base font-semibold text-[#2d1b69] bg-[hsl(var(--brand-accent))] rounded-lg transition-all duration-300 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5"
-              >
-                Login
-              </button>
+              {loading ? (
+                <div className="w-full text-center px-6 py-3 text-base font-semibold text-gray-400 bg-gray-700 rounded-lg flex items-center justify-center space-x-2">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Loading...</span>
+                </div>
+              ) : user ? (
+                <div className="space-y-3">
+                  <div className="text-center text-white text-sm">
+                    Welcome, {user.displayName || user.email?.split('@')[0] || 'User'}
+                  </div>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      closeMenu();
+                    }}
+                    className="w-full text-center px-6 py-3 text-base font-semibold text-white bg-gray-700 rounded-lg transition-all duration-300 hover:bg-gray-600"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsLoginModalOpen(true);
+                    closeMenu();
+                  }}
+                  className="w-full text-center px-6 py-3 text-base font-semibold text-[#2d1b69] bg-[hsl(var(--brand-accent))] rounded-lg transition-all duration-300 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5"
+                >
+                  Login
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -402,15 +429,39 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                 {navLinks.map((item) => renderNavItem(item))}
               </nav>
               
-              {/* Login Button */}
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className={cn(
-                  'px-6 py-2.5 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-brand-accent'
-                )}
-              >
-                Login
-              </button>
+              {/* Auth Button */}
+              {loading ? (
+                <div className="px-6 py-2.5 bg-gray-700 text-gray-400 font-semibold rounded-lg flex items-center space-x-2">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading...
+                </div>
+              ) : user ? (
+                <div className="flex items-center space-x-4">
+                  <span className="text-white text-sm">
+                    Welcome, {user.displayName || user.email?.split('@')[0] || 'User'}
+                  </span>
+                  <button
+                    onClick={signOut}
+                    className={cn(
+                      'px-4 py-2 bg-gray-700 text-white font-medium rounded-lg transition-all duration-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500'
+                    )}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className={cn(
+                    'px-6 py-2.5 bg-[hsl(var(--brand-accent))] text-[#2d1b69] font-semibold rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-[hsl(var(--brand-accent-dark))] hover:shadow-lg hover:shadow-brand-accent/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-brand-accent'
+                  )}
+                >
+                  Login
+                </button>
+              )}
             </div>
 
             {/* Mobile menu button */}
