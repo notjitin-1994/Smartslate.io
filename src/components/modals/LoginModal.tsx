@@ -1,6 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { parsePhoneNumberFromString, AsYouType, CountryCode } from 'libphonenumber-js';
+import { signUpWithEmail, signInWithEmail, signInWithGoogle, signInWithMicrosoft, createRecaptchaVerifier, signInWithPhone, getAuthErrorMessage } from '../../services/authService';
+import { createUserProfile } from '../../services/userService';
+import { useAuth } from '../../contexts/AuthContext';
 
 // --- TYPE DEFINITIONS ---
 type AuthMode = 'login' | 'signup';
@@ -117,41 +120,88 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     [countryInfo.code, getFlagEmoji]
   );
 
+  const handleGoogleLogin = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      const userCredential = await signInWithGoogle();
+      if (userCredential.user) {
+        await createUserProfile(userCredential.user);
+        onClose();
+      }
+    } catch (error: any) {
+      setError(getAuthErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onClose]);
+
+  const handleMicrosoftLogin = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      const userCredential = await signInWithMicrosoft();
+      if (userCredential.user) {
+        await createUserProfile(userCredential.user);
+        onClose();
+      }
+    } catch (error: any) {
+      setError(getAuthErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onClose]);
+
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       setIsLoading(true);
       setError('');
 
-      if (authMode === 'signup' && formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
+      try {
+        if (authMode === 'signup' && formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          setIsLoading(false);
+          return;
+        }
+
+        if (authMethod === 'email' && !formData.email) {
+          setError('Please enter a valid email address');
+          setIsLoading(false);
+          return;
+        }
+
+        if (authMethod === 'phone' && (!formData.phone || !countryInfo.isValid)) {
+          setError('Please enter a valid phone number');
+          setIsLoading(false);
+          return;
+        }
+
+        let userCredential;
+
+        if (authMethod === 'email') {
+          if (authMode === 'signup') {
+            userCredential = await signUpWithEmail(formData.email, formData.password, formData.fullName);
+          } else {
+            userCredential = await signInWithEmail(formData.email, formData.password);
+          }
+        } else if (authMethod === 'phone') {
+          const recaptchaVerifier = createRecaptchaVerifier('recaptcha-container');
+          const confirmationResult = await signInWithPhone(formData.phone, recaptchaVerifier);
+          setError('SMS sent! Please enter the verification code.');
+          setIsLoading(false);
+          return;
+        }
+
+        if (userCredential?.user) {
+          await createUserProfile(userCredential.user);
+          onClose();
+        }
+      } catch (error: any) {
+        setError(getAuthErrorMessage(error));
+      } finally {
         setIsLoading(false);
-        return;
       }
-
-      if (authMethod === 'email' && !formData.email) {
-        setError('Please enter a valid email address');
-        setIsLoading(false);
-        return;
-      }
-
-      if (authMethod === 'phone' && (!formData.phone || !countryInfo.isValid)) {
-        setError('Please enter a valid phone number');
-        setIsLoading(false);
-        return;
-      }
-
-      // Simulate API call
-      console.log('Submitting:', {
-        authMode,
-        authMethod,
-        ...formData,
-      });
-
-      setTimeout(() => {
-        setIsLoading(false);
-        onClose(); // Close modal on success
-      }, 1000);
     },
     [authMode, authMethod, formData, countryInfo.isValid, onClose]
   );
@@ -350,8 +400,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <div className="mt-6 grid grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Google')}
-                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
+                  onClick={handleGoogleLogin}
+                  disabled={isLoading}
+                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Sign in with Google"
                 >
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
@@ -362,8 +413,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
                 <button
                   type="button"
-                  onClick={() => console.log('Login with Microsoft')}
-                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors"
+                  onClick={handleMicrosoftLogin}
+                  disabled={isLoading}
+                  className="flex flex-col items-center justify-center py-3 px-2 border border-transparent rounded-lg shadow-sm bg-brand-accent text-sm font-medium text-white hover:bg-brand-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Sign in with Microsoft"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 23 23" aria-hidden="true">
@@ -388,6 +440,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
+      <div id="recaptcha-container"></div>
     </div>
   );
 };
