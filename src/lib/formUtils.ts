@@ -72,45 +72,51 @@ export const validateForm = (formData: FormData, formType: FormType): Record<str
 
   // Type-specific validations
   switch (formType) {
-    case 'expert':
+    case 'expert': {
       const expertData = formData as ExpertFormState;
       if (!expertData.fieldOfExpertise.trim()) errors.fieldOfExpertise = "Field of expertise is required.";
       if (!expertData.yearsOfExperience.trim()) errors.yearsOfExperience = "Years of experience is required.";
       if (!expertData.courseIdea.trim()) errors.courseIdea = "Course idea is required.";
       if (!expertData.hasTaughtBefore.trim()) errors.hasTaughtBefore = "This field is required.";
       break;
-    case 'leader':
+    }
+    case 'leader': {
       const leaderData = formData as LeaderFormState;
       if (!leaderData.organization.trim()) errors.organization = "Organization is required.";
       if (!leaderData.role.trim()) errors.role = "Your role is required.";
       if (!leaderData.interest.trim()) errors.interest = "Please specify your interest.";
       break;
-    case 'investor':
+    }
+    case 'investor': {
       const investorData = formData as InvestorFormState;
       if (!investorData.fundName.trim()) errors.fundName = "Fund name is required.";
       if (!investorData.investmentStage.trim()) errors.investmentStage = "Investment stage is required.";
       if (!investorData.interest.trim()) errors.interest = "Please specify your interest.";
       break;
-    case 'engineer':
+    }
+    case 'engineer': {
       const engineerData = formData as EngineerFormState;
       if (!engineerData.githubProfile.trim()) errors.githubProfile = "GitHub Profile is required.";
       if (!engineerData.yearsOfExperience.trim()) errors.yearsOfExperience = "Years of experience is required.";
       if (!engineerData.techStack.trim()) errors.techStack = "Tech stack is required.";
       if (!engineerData.interest.trim()) errors.interest = "Please specify your interest.";
       break;
+    }
     // Keep old cases for now
-    case 'standard':
+    case 'standard': {
       const standardData = formData as StandardFormData;
       if ('name' in standardData && !standardData.name.trim()) errors.name = "Name is required.";
       if (!standardData.organization?.trim()) errors.organization = "Organization is required.";
       break;
-    case 'instructor':
+    }
+    case 'instructor': {
       const instructorData = formData as InstructorFormData;
       if ('name' in instructorData && !instructorData.name.trim()) errors.name = "Name is required.";
       if (!instructorData.expertise?.trim()) errors.expertise = "Area of expertise is required.";
       if (!instructorData.portfolio?.trim()) errors.portfolio = "Portfolio URL is required.";
       break;
-    case 'introduction':
+    }
+    case 'introduction': {
       const introData = formData as IntroductionFormData;
       if (!introData.yourName?.trim()) errors.yourName = "Your name is required.";
       if (!introData.yourEmail?.trim() || !emailRegex.test(introData.yourEmail)) errors.yourEmail = "A valid email is required.";
@@ -119,6 +125,7 @@ export const validateForm = (formData: FormData, formType: FormType): Record<str
       if (!introData.contactOrg?.trim()) errors.contactOrg = "Contact's organization is required.";
       if (!introData.contactInfo?.trim()) errors.contactInfo = "Contact information is required.";
       break;
+    }
   }
   return errors;
 };
