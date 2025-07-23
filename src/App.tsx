@@ -10,7 +10,6 @@ import { Loader } from './components/common/Loader';
 import ContactModal from './components/modals/ContactModal';
 import { AuthProvider } from './contexts/AuthContext';
 import type { FormType } from './lib/formUtils';
-import { FirestoreTest } from './components/FirestoreTest';
 
 // Lazy load pages
 const MainLayout = lazy(() => import('./components/layout/MainLayout'));
@@ -88,7 +87,6 @@ const App = () => {
             onClose={handleCloseModal} 
             formType={modalFormType} 
           />
-          <FirestoreTest />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
