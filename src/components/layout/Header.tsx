@@ -67,19 +67,27 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Navigation links data
-  const navLinks: NavLinkType[] = [
-    {
-      label: 'Solutions',
-      path: '/solutions',
-      items: [
-        { path: '/solutions/ignite-series', label: 'Ignite Series' },
-        { path: '/solutions/smart-skills-architecture', label: 'Smart Skills Architecture' },
-        { path: '/solutions/solara', label: 'Solara' },
-      ],
-    },
-    { path: '/smartslate-difference', label: 'Why Smartslate', gradient: true },
-    { path: '/collaborate', label: 'Partner With Us' },
-  ];
+  const navLinks: NavLinkType[] = React.useMemo(() => {
+    const baseLinks: NavLinkType[] = [
+      {
+        label: 'Solutions',
+        path: '/solutions',
+        items: [
+          { path: '/solutions/ignite-series', label: 'Ignite Series' },
+          { path: '/solutions/smart-skills-architecture', label: 'Smart Skills Architecture' },
+          { path: '/solutions/solara', label: 'Solara' },
+        ],
+      },
+      { path: '/smartslate-difference', label: 'Why Smartslate', gradient: true },
+      { path: '/collaborate', label: 'Partner With Us' },
+    ];
+
+    if (user?.email === 'jitin@smartslate.io') {
+      return [...baseLinks, { path: '/admin', label: 'Admin Dashboard' }];
+    }
+
+    return baseLinks;
+  }, [user]);
 
   // Utility functions
   const getInitials = (name: string | null) => {
@@ -274,6 +282,10 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
               <Button onClick={() => { closeMenu(); navigate('/profile'); }} variant="outline" className="w-full bg-transparent text-white border-white/50 hover:bg-white/10">
                 My Profile
               </Button>
+              <Link to="/settings" className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white rounded-md" onClick={closeMenu}>Settings</Link>
+              {user.email === 'jitin@smartslate.io' && (
+                <Link to="/admin" className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white rounded-md" onClick={closeMenu}>Admin Dashboard</Link>
+              )}
               <Button onClick={() => { closeMenu(); setIsSignOutModalOpen(true); }} variant="destructive" className="w-full bg-red-500/20 border-red-500/50 text-red-300 hover:bg-red-500/30">
                 Sign Out
               </Button>

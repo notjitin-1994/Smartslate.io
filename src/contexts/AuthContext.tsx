@@ -54,6 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Handle auth state changes
   useEffect(() => {
+
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         // Always create a profile for tracking, anonymous or not
