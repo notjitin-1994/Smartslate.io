@@ -12,7 +12,7 @@ export const Footer: React.FC<FooterProps> = ({ onContactClick }) => (
         <img 
           src="/images/Final-Dark-BG.png"
           alt="smartslate.io logo"
-          className="h-8 w-auto"
+          className="h-6 w-auto"
           width="160"
           height="32"
           loading="lazy"

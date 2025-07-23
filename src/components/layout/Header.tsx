@@ -340,15 +340,15 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
               'mx-auto transition-all duration-500 ease-in-out pointer-events-auto',
               'bg-transparent',
               isScrolled
-                ? 'w-[92%] md:w-full bg-primary/40 backdrop-blur-2xl shadow-2xl shadow-primary/20 border border-primary/20 rounded-2xl'
+                ? 'w-[92%] backdrop-blur-lg shadow-2xl shadow-primary/20 rounded-2xl'
                 : 'w-full rounded-none'
             )}
           >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full mx-auto px-4 sm:px-6">
               {/* Desktop Header */}
-              <div className="hidden md:flex items-center justify-between h-16">
+              <div className="hidden lg:flex items-center justify-between h-16">
                 <Link to="/" className="flex-shrink-0">
-                  <img className="h-10 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
+                  <img className="h-7 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
                 </Link>
                 <nav className="flex items-center space-x-1">
                   {navLinks.map(item => renderNavItem(item))}
@@ -359,15 +359,15 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
               </div>
 
               {/* Mobile Header */}
-              <div className="md:hidden flex items-center justify-between h-16">
+              <div className="lg:hidden flex items-center justify-between h-16">
                 <Link to="/" className="flex-shrink-0">
-                  <img className="h-10 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
+                  <img className="h-7 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
                 </Link>
                 <button
                   onClick={toggleMenu}
                   className={cn(
                     'z-50 p-2 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary',
-                    isScrolled || isMenuOpen ? 'bg-primary/70' : 'bg-transparent'
+                    'bg-transparent'
                   )}
                   aria-expanded={isMenuOpen}
                   style={{ width: '44px', height: '44px' }}
