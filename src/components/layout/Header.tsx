@@ -70,6 +70,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const navLinks: NavLinkType[] = [
     {
       label: 'Solutions',
+      path: '/solutions',
       items: [
         { path: '/solutions/ignite-series', label: 'Ignite Series' },
         { path: '/solutions/smart-skills-architecture', label: 'Smart Skills Architecture' },
@@ -150,12 +151,16 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
     );
 
     if ('items' in item) { // Dropdown menu
+      const dropdownItem = item as DropdownNavItem;
+      const isSolutionsOpen = location.pathname.startsWith('/solutions');
+
+      // Mobile rendering for dropdown
       if (isMobile) {
         return (
           <div key={item.label}>
             <button
               onClick={() => setIsSolutionsOpen(!isSolutionsOpen)}
-              className={cn(mobileClasses, 'flex justify-between items-center text-gray-300 hover:bg-white/5 hover:text-white')}
+              className={cn(mobileClasses, 'flex justify-between items-center w-full')}
             >
               <span>{item.label}</span>
               <svg className={cn('w-5 h-5 transition-transform', isSolutionsOpen && 'rotate-180')} viewBox="0 0 20 20" fill="currentColor">
@@ -165,7 +170,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
             {isSolutionsOpen && (
               <div className="pl-4 mt-2 space-y-2">
                 {item.items.map(subItem => (
-                  <NavLink key={subItem.path} to={subItem.path} onClick={closeMenu} className={({ isActive }) => navLinkClasses({ isActive })}>
+                  <NavLink key={subItem.path} to={subItem.path} onClick={closeMenu} className={({ isActive }) => cn(mobileClasses, isActive ? 'text-white bg-white/10' : 'text-gray-300 hover:bg-white/5')}>
                     {subItem.label}
                   </NavLink>
                 ))}
@@ -174,26 +179,48 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
           </div>
         );
       }
+
+      // Desktop rendering for dropdown
+      const triggerContent = (
+        <>
+          {dropdownItem.label}
+          <svg className="ml-1 h-5 w-5 transition-transform duration-200" style={{ transform: isSolutionsOpen ? 'rotate(180deg)' : 'rotate(0deg)'}} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
+        </>
+      );
+
       return (
-        <DropdownMenu onOpenChange={setIsSolutionsOpen} open={isSolutionsOpen}>
-          <DropdownMenuTrigger asChild>
-            <button className={navLinkClasses({ isActive: isSolutionsOpen })}>
-              {item.label}
-              <svg className="ml-1 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
+        <div className="relative" onMouseEnter={() => setIsSolutionsOpen(true)} onMouseLeave={() => setIsSolutionsOpen(false)}>
+          {dropdownItem.path ? (
+            <NavLink to={dropdownItem.path} className={navLinkClasses({ isActive: isSolutionsOpen, gradient: dropdownItem.gradient })}>
+              {triggerContent}
+            </NavLink>
+          ) : (
+            <button className={navLinkClasses({ isActive: isSolutionsOpen, gradient: dropdownItem.gradient })}>
+              {triggerContent}
             </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {item.items.map(subItem => (
-              <DropdownMenuItem key={subItem.path} asChild>
-                <NavLink to={subItem.path}>{subItem.label}</NavLink>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          )}
+          {isSolutionsOpen && (
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg shadow-lg p-2">
+              {dropdownItem.items.map(subItem => (
+                <NavLink
+                  key={subItem.path}
+                  to={subItem.path}
+                  className={({ isActive }) => cn(
+                    'block w-full text-left px-4 py-2 rounded-md text-sm transition-colors',
+                    isActive ? 'bg-indigo-500/50 text-white' : 'text-gray-200 hover:bg-white/10 hover:text-white'
+                  )}
+                >
+                  {subItem.label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
       );
     }
 
-    return ( // Regular nav link
+    // Regular nav link
+    return (
       <NavLink key={item.path} to={item.path} onClick={isMobile ? closeMenu : undefined} className={({ isActive }) => navLinkClasses({ isActive, gradient: item.gradient })}>
         {item.label}
       </NavLink>

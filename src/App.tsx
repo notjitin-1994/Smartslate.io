@@ -21,6 +21,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const SmartslateDifference = lazy(() => import('./components/pages/SmartslateDifference'));
 const CollaboratePage = lazy(() => import('./components/pages/CollaboratePage'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
+const UserSettings = lazy(() => import('./pages/UserSettings'));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -75,6 +76,7 @@ const App = () => {
                     <Route path="/smartslate-difference" element={<SmartslateDifference />} />
                     <Route path="/collaborate" element={<CollaboratePage onContactClick={handleContactClick} />} />
                                         <Route path="/profile" element={<UserProfile />} />
+                                        <Route path="/settings" element={<UserSettings />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>
