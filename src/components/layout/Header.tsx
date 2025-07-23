@@ -210,10 +210,8 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
       <div
         ref={menuRef}
         className={cn(
-          'absolute top-0 right-0 bottom-0 w-full max-w-xs bg-brand-indigo/95 transition-transform duration-500 ease-in-out flex flex-col',
-          isMenuOpen
-            ? 'translate-x-0 shadow-[0_25px_50px_-12px_rgb(0_0_0_/_0.4),_0_0_25px_hsl(var(--brand-accent)_/_0.5),_0_0_0_1px_hsl(var(--brand-accent)_/_0.7)]'
-            : 'translate-x-full shadow-2xl'
+          'absolute top-0 right-0 bottom-0 w-full max-w-xs bg-brand-indigo/95 shadow-2xl transition-transform duration-500 ease-in-out flex flex-col border-l border-white/10',
+          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
         <div className="flex justify-between items-center p-5 border-b border-white/10 h-20">
