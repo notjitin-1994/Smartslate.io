@@ -1,0 +1,255 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { auth } from '@/lib/firebase';
+import { Button } from '@/components/ui/button';
+
+interface NavLinkType {
+  path: string;
+  label: string;
+  gradient?: boolean;
+}
+
+const Header = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Navigation links
+  const navLinks: NavLinkType[] = [
+    { path: '/', label: 'Home' },
+    { path: '/features', label: 'Features' },
+    { path: '/pricing', label: 'Pricing' },
+    { path: '/contact', label: 'Contact' },
+  ];
+
+  // Handle sign out
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!window.confirm('Are you sure you want to sign out?')) {
+      return;
+    }
+    
+    try {
+      setIsSigningOut(true);
+      
+      // Close menu if open
+      setIsMenuOpen(false);
+      
+      // Sign out from Firebase
+      await auth.signOut();
+      
+      // Clear all auth-related data
+      localStorage.removeItem('firebase:authUser');
+      sessionStorage.clear();
+      
+      // Clear any cached data
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+      }
+      
+      // Force a hard redirect to ensure complete sign out
+      window.location.href = '/';
+      
+    } catch (error) {
+      console.error('Error during sign out:', error);
+      alert('Failed to sign out. Please try again.');
+      setIsSigningOut(false);
+    }
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close menu when pressing Escape
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  // Navigation link classes
+  const navLinkClasses = (path: string) => {
+    const isActive = location.pathname === path;
+    return `px-3 py-2 rounded-md text-sm font-medium ${
+      isActive 
+        ? 'bg-gray-900 text-white' 
+        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+    } transition-colors`;
+  };
+
+  // Mobile navigation link classes
+  const mobileNavLinkClasses = (path: string) => {
+    const isActive = location.pathname === path;
+    return `block px-3 py-2 rounded-md text-base font-medium ${
+      isActive 
+        ? 'bg-gray-100 text-gray-900' 
+        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+    }`;
+  };
+
+  return (
+    <header className="bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex-shrink-0">
+              <span className="text-xl font-bold text-gray-900">SmartSlate</span>
+            </Link>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:ml-10 md:flex md:space-x-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={navLinkClasses(link.path)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop Auth Buttons */}
+          <div className="hidden md:flex md:items-center md:space-x-4">
+            {user ? (
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="text-gray-700 hover:bg-gray-100"
+                >
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                </Button>
+                <Link to="/dashboard">
+                  <Button className="ml-4">
+                    Dashboard
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/login')}
+                  className="text-gray-700 hover:bg-gray-100"
+                >
+                  Log in
+                </Button>
+                <Button
+                  onClick={() => navigate('/signup')}
+                  className="ml-4"
+                >
+                  Sign up
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="-mr-2 flex items-center md:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              aria-expanded="false"
+            >
+              <span className="sr-only">Open main menu</span>
+              {isMenuOpen ? (
+                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      <div 
+        ref={menuRef}
+        className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`}
+      >
+        <div className="pt-2 pb-3 space-y-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={mobileNavLinkClasses(link.path)}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
+          
+          {user ? (
+            <>
+              <Link
+                to="/dashboard"
+                className={mobileNavLinkClasses('/dashboard')}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              >
+                {isSigningOut ? 'Signing out...' : 'Sign out'}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  navigate('/login');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  navigate('/signup');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-indigo-600 hover:bg-indigo-50 hover:text-indigo-800"
+              >
+                Sign up
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
