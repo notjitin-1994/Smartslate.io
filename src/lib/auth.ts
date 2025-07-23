@@ -5,7 +5,8 @@ import {
   signInWithPhoneNumber,
   RecaptchaVerifier,
   ConfirmationResult,
-  AuthError
+  AuthError,
+  signInAnonymously as firebaseSignInAnonymously
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 
@@ -58,6 +59,19 @@ export const signInWithPhone = async (phoneNumber: string, recaptchaVerifier: Re
   try {
     const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
     return { success: true, confirmationResult };
+  } catch (error) {
+    const authError = error as AuthError;
+    return { 
+      success: false, 
+      error: getAuthErrorMessage(authError.code) 
+    };
+  }
+};
+
+export const signInAnonymously = async (): Promise<AuthResult> => {
+  try {
+    await firebaseSignInAnonymously(auth);
+    return { success: true };
   } catch (error) {
     const authError = error as AuthError;
     return { 
