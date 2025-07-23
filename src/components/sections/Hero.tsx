@@ -124,7 +124,7 @@ export const Hero: React.FC<HeroProps> = ({ onRevealNext }) => {
   }, []);
 
   return (
-    <section className="relative w-full overflow-hidden bg-background" style={{ minHeight: '60vh' }}>
+    <section className="relative w-full overflow-hidden" style={{ minHeight: '60vh' }}>
       <div className="absolute inset-0 z-0">
         <canvas
           ref={canvasRef}

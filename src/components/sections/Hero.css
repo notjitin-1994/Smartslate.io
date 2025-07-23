@@ -7,12 +7,6 @@
   height: 100%;
 }
 
-/* Ensure smoother gradient overlay from black (top) to brand background (bottom) */
-#hero {
-  position: relative;
-  background: linear-gradient(180deg, #000000 0%, hsl(var(--brand-bg)) 90%);
-  overflow: hidden;
-}
 
 /* Slight fade-in animation for canvas background on mount */
 @keyframes fadeIn {

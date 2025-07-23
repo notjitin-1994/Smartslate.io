@@ -25,7 +25,7 @@ html, body {
   overflow-x: hidden;
   overflow-y: auto;
   scroll-behavior: smooth;
-  background-color: #091420; /* Updated background color */
+  background-color: #000101; /* Updated background color */
   color: #ffffff; /* Ensure text is visible on dark background */
   /* transform property was removed to fix position:fixed behavior */
   -webkit-overflow-scrolling: touch;

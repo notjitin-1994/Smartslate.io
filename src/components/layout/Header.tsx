@@ -299,7 +299,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar>
+            <Avatar className="bg-primary">
               <AvatarImage src={user.photoURL || undefined} />
               <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>
@@ -328,51 +328,65 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
 
   return (
     <>
-      <header className={cn(
-        'fixed w-full top-0 left-0 z-50 transition-all duration-300',
-        isScrolled ? 'bg-brand-indigo/90 backdrop-blur-lg shadow-lg' : 'bg-transparent'
-      )}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Desktop Header */}
-          <div className="hidden md:flex items-center justify-between h-20">
-            <Link to="/" className="flex-shrink-0">
-              <img className="h-10 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
-            </Link>
-            <nav className="flex items-center space-x-1">
-              {navLinks.map(item => renderNavItem(item))}
-            </nav>
-            <div className="flex items-center space-x-4">
-              {renderDesktopAuth()}
-            </div>
-          </div>
-
-          {/* Mobile Header */}
-          <div className="md:hidden flex items-center justify-between h-20">
-            <Link to="/" className="flex-shrink-0">
-              <img className="h-10 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
-            </Link>
-            <button
-              onClick={toggleMenu}
-              className={cn(
-                'z-50 p-2 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-brand-background focus:ring-brand-accent',
-                isScrolled || isMenuOpen ? 'bg-brand-secondary/70' : 'bg-transparent'
-              )}
-              aria-expanded={isMenuOpen}
-              style={{ width: '44px', height: '44px' }}
-            >
-              <span className="sr-only">{isMenuOpen ? 'Close menu' : 'Open menu'}</span>
-              <div className="w-6 h-6 relative">
-                <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out',
-                  isMenuOpen ? 'rotate-45' : '-translate-y-2'
-                )}></div>
-                <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-opacity duration-300',
-                  isMenuOpen ? 'opacity-0' : 'opacity-100'
-                )}></div>
-                <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out',
-                  isMenuOpen ? '-rotate-45' : 'translate-y-2'
-                )}></div>
+      <header className="fixed top-0 left-0 w-full z-50 h-32 pointer-events-none">
+        <div
+          className={cn(
+            'absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl transition-all duration-500 ease-in-out',
+            isScrolled ? 'top-2' : 'top-0'
+          )}
+        >
+          <div
+            className={cn(
+              'mx-auto transition-all duration-500 ease-in-out pointer-events-auto',
+              'bg-transparent',
+              isScrolled
+                ? 'w-[92%] md:w-full bg-primary/40 backdrop-blur-2xl shadow-2xl shadow-primary/20 border border-primary/20 rounded-2xl'
+                : 'w-full rounded-none'
+            )}
+          >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* Desktop Header */}
+              <div className="hidden md:flex items-center justify-between h-16">
+                <Link to="/" className="flex-shrink-0">
+                  <img className="h-10 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
+                </Link>
+                <nav className="flex items-center space-x-1">
+                  {navLinks.map(item => renderNavItem(item))}
+                </nav>
+                <div className="flex items-center space-x-4">
+                  {renderDesktopAuth()}
+                </div>
               </div>
-            </button>
+
+              {/* Mobile Header */}
+              <div className="md:hidden flex items-center justify-between h-16">
+                <Link to="/" className="flex-shrink-0">
+                  <img className="h-10 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
+                </Link>
+                <button
+                  onClick={toggleMenu}
+                  className={cn(
+                    'z-50 p-2 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary',
+                    isScrolled || isMenuOpen ? 'bg-primary/70' : 'bg-transparent'
+                  )}
+                  aria-expanded={isMenuOpen}
+                  style={{ width: '44px', height: '44px' }}
+                >
+                  <span className="sr-only">{isMenuOpen ? 'Close menu' : 'Open menu'}</span>
+                  <div className="w-6 h-6 relative">
+                    <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out',
+                      isMenuOpen ? 'rotate-45' : '-translate-y-2'
+                    )}></div>
+                    <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-opacity duration-300',
+                      isMenuOpen ? 'opacity-0' : 'opacity-100'
+                    )}></div>
+                    <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out',
+                      isMenuOpen ? '-rotate-45' : 'translate-y-2'
+                    )}></div>
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </header>

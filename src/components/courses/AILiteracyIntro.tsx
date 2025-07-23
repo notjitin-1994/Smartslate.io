@@ -24,7 +24,7 @@ const AILiteracyIntro: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#091420] text-white">
+    <div className="min-h-screen bg-transparent text-white">
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-20">
         <Link 
@@ -37,7 +37,7 @@ const AILiteracyIntro: React.FC = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-start overflow-hidden bg-[#091420] border-b border-white/5">
+      <section className="relative min-h-screen flex items-center justify-start overflow-hidden bg-transparent border-b border-white/5">
         <motion.div 
           className="absolute inset-0 bg-grid-white/[0.03] pointer-events-none"
           style={{ y: backgroundY }}
@@ -162,7 +162,7 @@ const AILiteracyIntro: React.FC = () => {
       </section>
 
       {/* Course Overview */}
-      <section className="py-16 md:py-24 relative bg-[#091420] border-t border-white/5">
+      <section className="py-16 md:py-24 relative bg-transparent border-t border-white/5">
         <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none"></div>
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-5xl mx-auto">
@@ -286,7 +286,7 @@ const AILiteracyIntro: React.FC = () => {
       </section>
 
       {/* Course Modules */}
-      <section className="py-16 md:py-24 relative bg-[#091420] border-t border-white/5">
+      <section className="py-16 md:py-24 relative bg-transparent border-t border-white/5">
         <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-5xl mx-auto">
@@ -616,7 +616,7 @@ const AILiteracyIntro: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-gray-900/80 to-[#091420] relative overflow-hidden">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-gray-900/80 to-transparent relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/10 via-transparent to-purple-500/10 pointer-events-none" />
         

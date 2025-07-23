@@ -30,7 +30,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="bg-brand-background text-text-primary overflow-x-hidden">
+      <div className="text-text-primary overflow-x-hidden">
         <Header onContactClick={handleContact} />
         <main className="main-content">
           <Outlet />
