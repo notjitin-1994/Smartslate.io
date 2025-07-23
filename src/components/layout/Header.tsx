@@ -239,7 +239,17 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
           <div className="px-4 pt-4 mt-auto border-t border-white/10">
             {user ? (
               <div className="space-y-4">
-                <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-3">
+                {user && (
+                                    <Button 
+                    onClick={() => navigate('/profile')}
+                    variant="outline"
+                    className="hidden sm:flex bg-transparent text-white border-white/50 hover:bg-white/10 hover:text-white"
+                  >
+                    My Profile
+                  </Button>
+                )}
+
                   <Avatar>
                     <AvatarImage src={user.photoURL || undefined} />
                   <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
@@ -301,7 +311,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                         <p className="text-xs text-gray-500 font-normal">{user.email}</p>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => navigate('/dashboard')}>Dashboard</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => navigate('/profile')}>My Profile</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate('/settings')}>Settings</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => setIsSignOutModalOpen(true)} className="text-red-500 focus:text-red-500">
