@@ -4,7 +4,7 @@ import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, se
 
 const firebaseConfig = {
   apiKey: "AIzaSyDeN3mSpmnjyk9jIg6efqp8uQnb0_tpyiw",
-  authDomain: "smartslatesite-app.firebaseapp.com",
+  authDomain: "smartslate.io",
   projectId: "smartslatesite-app",
   storageBucket: "smartslatesite-app.appspot.com",
   messagingSenderId: "490151080321",

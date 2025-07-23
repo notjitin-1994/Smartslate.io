@@ -22,10 +22,6 @@
   - **Font Family:** 'Lato', sans-serif
   - **Usage:** Used for all body copy, ensuring readability and a clean, professional look.
 
-## Logo
-
-*(A placeholder for where the brand logo guidelines would go. This would include rules on clear space, minimum size, and correct usage.)*
-
 ## Tone of Voice
 
 The brand's tone of voice is:
