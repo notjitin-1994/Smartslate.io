@@ -518,7 +518,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                 <div className="hidden md:ml-4 md:flex md:items-center">
                   <Button
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="bg-[#4F46E5] hover:bg-[#4338CA] text-white border-transparent hover:border-transparent transition-all duration-200"
+                    className="bg-[#a7dadb] text-[#2d1b69] hover:bg-[#9bd0d1] border border-[#a7dadb] hover:border-[#8bc6c7] transition-all duration-200 shadow-sm hover:shadow"
                   >
                     Sign In / Sign Up
                   </Button>
