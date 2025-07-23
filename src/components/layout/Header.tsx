@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Type definitions for navigation items
 interface BaseNavItem {
   label: string;
   gradient?: boolean;
@@ -43,7 +44,7 @@ interface DropdownItem {
 
 interface DropdownNavItem extends BaseNavItem {
   items: DropdownItem[];
-  path?: string; // Optional path for the main dropdown link
+  path?: string; // Optional: for a main dropdown link
 }
 
 type NavLinkType = RegularNavItem | DropdownNavItem;
@@ -54,23 +55,35 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // State management
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Navigation links data
+  const navLinks: NavLinkType[] = [
+    {
+      label: 'Solutions',
+      items: [
+        { path: '/solutions/ignite-series', label: 'Ignite Series' },
+        { path: '/solutions/smart-skills-architecture', label: 'Smart Skills Architecture' },
+        { path: '/solutions/solara', label: 'Solara' },
+      ],
+    },
+    { path: '/smartslate-difference', label: 'Why Smartslate', gradient: true },
+    { path: '/collaborate', label: 'Partner With Us' },
+  ];
+
+  // Utility functions
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
   };
 
   const handleSignOut = async () => {
@@ -82,289 +95,266 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
     }
   };
 
+  // Effects for scroll and click outside
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks: NavLinkType[] = [
-    {
-      label: 'Solutions',
-      items: [
-        { path: '/solutions/ignite-series', label: 'Ignite Series' },
-        { path: '/solutions/smart-skills-architecture', label: 'Smart Skills Architecture' },
-        { path: '/solutions/solara', label: 'Solara' }
-      ]
-    },
-    { path: '/smartslate-difference', label: 'Why Smartslate', gradient: true },
-    { path: '/collaborate', label: 'Partner With Us' }
-  ] as const;
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        closeMenu();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
 
-  const closeMenu = () => {
-    setIsAnimating(false);
-    setTimeout(() => {
-      setIsMenuOpen(false);
-      setIsSolutionsOpen(false);
-    }, 300);
-  };
-
+  // Menu open/close logic
   const toggleMenu = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
     if (isMenuOpen) {
-      closeMenu();
+      setIsMenuOpen(false);
     } else {
       setIsMenuOpen(true);
-      requestAnimationFrame(() => {
-        setIsAnimating(true);
-      });
     }
+    setTimeout(() => setIsAnimating(false), 500); // Animation duration
   };
 
-  const navLinkClasses = ({ isActive, gradient = false }: { isActive: boolean; gradient?: boolean }): string => cn(
-    'inline-flex items-center px-3 py-1.5 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-brand-indigo/50 rounded-lg',
-    isActive ? 'text-white bg-white/10 backdrop-blur-sm' : gradient ? 'gradient-text hover:opacity-90' : 'text-gray-200 hover:text-white hover:bg-white/5',
-    'hover:no-underline transition-all duration-200 hover:scale-[1.02] hover:shadow-sm'
-  );
+  const closeMenu = () => {
+    if (isAnimating || !isMenuOpen) return;
+    setIsAnimating(true);
+    setIsMenuOpen(false);
+    setIsSolutionsOpen(false);
+    setTimeout(() => setIsAnimating(false), 500);
+  };
 
-  const mobileNavLinkClasses = ({ isActive, gradient = false }: { isActive: boolean; gradient?: boolean }): string => cn(
-    'block px-4 py-2.5 text-base font-medium transition-colors',
-    isActive ? 'text-white bg-brand-indigo/30' : gradient ? 'gradient-text' : 'text-gray-200 hover:bg-brand-indigo/20 hover:text-white',
-    'duration-200 rounded-lg mx-2'
-  );
+  // --- Component Rendering ---
 
   const renderNavItem = (item: NavLinkType, isMobile = false) => {
-    const linkProps = { 
-      onClick: isMobile ? closeMenu : undefined 
-    };
+    const baseClasses = 'transition-colors duration-200';
+    const desktopClasses = 'inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-brand-indigo/50';
+    const mobileClasses = 'block w-full text-left px-4 py-2.5 text-base font-medium rounded-md';
 
-    if ('items' in item) {
+    const navLinkClasses = ({ isActive, gradient = false }: { isActive: boolean; gradient?: boolean }): string => cn(
+      baseClasses,
+      isMobile ? mobileClasses : desktopClasses,
+      isActive
+        ? 'text-white bg-white/10'
+        : gradient
+        ? 'gradient-text hover:opacity-90'
+        : 'text-gray-300 hover:bg-white/5 hover:text-white'
+    );
+
+    if ('items' in item) { // Dropdown menu
       if (isMobile) {
         return (
-          <div className="mx-2">
-            <button 
+          <div key={item.label}>
+            <button
               onClick={() => setIsSolutionsOpen(!isSolutionsOpen)}
-              className={mobileNavLinkClasses({ isActive: false }) + ' w-full flex justify-between items-center'}
+              className={cn(mobileClasses, 'flex justify-between items-center text-gray-300 hover:bg-white/5 hover:text-white')}
             >
-              {item.label}
-              <svg className={cn('w-5 h-5 transition-transform', isSolutionsOpen && 'rotate-180')} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <span>{item.label}</span>
+              <svg className={cn('w-5 h-5 transition-transform', isSolutionsOpen && 'rotate-180')} viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </button>
             {isSolutionsOpen && (
-              <div className="mt-2 pl-4 border-l-2 border-white/10">
+              <div className="pl-4 mt-2 space-y-2">
                 {item.items.map(subItem => (
-                  <NavLink
-                    key={subItem.path}
-                    to={subItem.path}
-                    className={({ isActive }) => mobileNavLinkClasses({ isActive }) + ' !py-2 !text-sm'}
-                    onClick={closeMenu}
-                  >
+                  <NavLink key={subItem.path} to={subItem.path} onClick={closeMenu} className={({ isActive }) => navLinkClasses({ isActive })}>
                     {subItem.label}
                   </NavLink>
                 ))}
               </div>
             )}
           </div>
-        )
+        );
       }
       return (
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={setIsSolutionsOpen} open={isSolutionsOpen}>
           <DropdownMenuTrigger asChild>
-            <button className={navLinkClasses({ isActive: false }) + ' flex items-center'}>
+            <button className={navLinkClasses({ isActive: isSolutionsOpen })}>
               {item.label}
-              <svg className="ml-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <svg className="ml-1 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {item.items.map((dropdownItem) => (
-              <DropdownMenuItem key={dropdownItem.path} asChild disabled={dropdownItem.disabled}>
-                <Link to={dropdownItem.path}>{dropdownItem.label}</Link>
+            {item.items.map(subItem => (
+              <DropdownMenuItem key={subItem.path} asChild>
+                <NavLink to={subItem.path}>{subItem.label}</NavLink>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
       );
-    } else {
-      return (
-        <NavLink
-          key={item.path}
-          to={item.path}
-          className={({ isActive }) => isMobile ? mobileNavLinkClasses({ isActive, gradient: item.gradient }) : navLinkClasses({ isActive, gradient: item.gradient })}
-          {...linkProps}
-        >
-          {item.label}
-        </NavLink>
-      );
     }
+
+    return ( // Regular nav link
+      <NavLink key={item.path} to={item.path} onClick={isMobile ? closeMenu : undefined} className={({ isActive }) => navLinkClasses({ isActive, gradient: item.gradient })}>
+        {item.label}
+      </NavLink>
+    );
   };
 
   const renderMobileMenu = () => (
-    <div 
-      ref={menuRef}
+    <div
       className={cn(
-        'fixed inset-0 bg-brand-indigo/80 backdrop-blur-lg z-40',
-        isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
-        'transition-opacity duration-300'
+        'fixed inset-0 z-[60] bg-black/50 backdrop-blur-lg transition-opacity duration-500 md:hidden',
+        isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       )}
-      onClick={closeMenu}
     >
-      <div 
+      <div
+        ref={menuRef}
         className={cn(
-          'fixed inset-y-0 right-0 max-w-xs w-full bg-brand-indigo/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-50',
-          'transform transition-transform duration-300 ease-in-out',
-          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          'absolute top-0 right-0 bottom-0 w-full max-w-xs bg-brand-indigo/95 transition-transform duration-500 ease-in-out flex flex-col',
+          isMenuOpen
+            ? 'translate-x-0 shadow-[0_25px_50px_-12px_rgb(0_0_0_/_0.4),_0_0_25px_hsl(var(--brand-accent)_/_0.5),_0_0_0_1px_hsl(var(--brand-accent)_/_0.7)]'
+            : 'translate-x-full shadow-2xl'
         )}
-        onClick={(e) => e.stopPropagation()}
       >
-        <div className="h-full flex flex-col py-6 pb-8 overflow-y-auto space-y-4">
-          <button 
-            className="absolute top-4 right-4 p-2 rounded-full bg-brand-indigo/80 hover:bg-brand-indigo/90 transition-all duration-300"
+        <div className="flex justify-between items-center p-5 border-b border-white/10 h-20">
+          <h2 className="text-xl font-bold text-white">Menu</h2>
+          <button
             onClick={closeMenu}
+            className="p-2 -mr-2"
           >
-            <svg 
-              className="w-6 h-6 text-white" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <span className="sr-only">Close menu</span>
+            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
-          <nav className="flex flex-col space-y-2 px-2">
+        </div>
+        <div className="p-5 space-y-2 overflow-y-auto flex-grow">
+          <nav className="flex flex-col space-y-2">
             {navLinks.map(item => renderNavItem(item, true))}
           </nav>
-          <div className="px-4 pt-4 mt-auto border-t border-white/10">
-            {user ? (
-              <div className="space-y-4">
-                              <div className="flex items-center space-x-3">
-                {user && (
-                                    <Button 
-                    onClick={() => navigate('/profile')}
-                    variant="outline"
-                    className="hidden sm:flex bg-transparent text-white border-white/50 hover:bg-white/10 hover:text-white"
-                  >
-                    My Profile
-                  </Button>
-                )}
-
-                  <Avatar>
-                    <AvatarImage src={user.photoURL || undefined} />
+        </div>
+        <div className="p-5 mt-auto border-t border-white/10">
+          {loading ? (
+            <div className="h-12 w-full bg-gray-700 rounded-md animate-pulse" />
+          ) : user ? (
+            <div className="text-left space-y-2">
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={user.photoURL || undefined} />
                   <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold text-white">{user.displayName}</p>
-                  <p className="text-sm text-gray-400">{user.email}</p>
+                  <p className="font-semibold text-white truncate">{user.displayName}</p>
+                  <p className="text-sm text-gray-300 truncate">{user.email}</p>
                 </div>
-                </div>
-                <Button variant="ghost" onClick={() => { closeMenu(); navigate('/dashboard'); }} className="w-full justify-start text-gray-200">Dashboard</Button>
-                <Button variant="ghost" onClick={() => setIsSignOutModalOpen(true)} className="w-full justify-start text-red-400 hover:text-red-400">
-                  Sign Out
-                </Button>
               </div>
-            ) : (
-              <Button onClick={() => { closeMenu(); setIsLoginModalOpen(true); }} className="w-full gradient-button">
-                Login / Sign Up
+              <Button onClick={() => { closeMenu(); navigate('/profile'); }} variant="outline" className="w-full bg-transparent text-white border-white/50 hover:bg-white/10">
+                My Profile
               </Button>
-            )}
-          </div>
+              <Button onClick={() => { closeMenu(); setIsSignOutModalOpen(true); }} variant="destructive" className="w-full bg-red-500/20 border-red-500/50 text-red-300 hover:bg-red-500/30">
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => { closeMenu(); setIsLoginModalOpen(true); }}
+              className="w-full bg-[#a8dadc] text-indigo-600 font-semibold hover:bg-[#a8dadc]/90"
+            >
+              Sign In
+            </Button>
+          )}
         </div>
       </div>
     </div>
   );
 
+  const renderDesktopAuth = () => {
+    if (loading) {
+      return <div className="h-10 w-28 bg-gray-700 rounded-md animate-pulse" />;
+    }
+    return user ? (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Avatar>
+              <AvatarImage src={user.photoURL || undefined} />
+              <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>
+            <p className="font-semibold truncate">{user.displayName}</p>
+            <p className="text-xs text-gray-500 font-normal truncate">{user.email}</p>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => navigate('/profile')}>My Profile</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/settings')}>Settings</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setIsSignOutModalOpen(true)} className="text-red-500 focus:text-red-500">
+            Sign Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ) : (
+      <Button onClick={() => setIsLoginModalOpen(true)} className="bg-[#a8dadc] hover:bg-[#a8dadc]/90 text-indigo-600 font-semibold">
+        Sign In
+      </Button>
+    );
+  };
+
   return (
     <>
       <header className={cn(
-        'fixed w-full z-30 transition-all duration-300',
-        isScrolled ? 'bg-brand-indigo/90 backdrop-blur-md shadow-lg' : 'bg-transparent',
-        'border-b',
-        isScrolled ? 'border-white/10' : 'border-transparent'
+        'fixed w-full top-0 left-0 z-50 transition-all duration-300',
+        isScrolled ? 'bg-brand-indigo/90 backdrop-blur-lg shadow-lg' : 'bg-transparent'
       )}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center group">
-              <img src="/images/Final-Dark-BG.png" alt="Smartslate" className="h-8 w-auto" />
+          {/* Desktop Header */}
+          <div className="hidden md:flex items-center justify-between h-20">
+            <Link to="/" className="flex-shrink-0">
+              <img className="h-10 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
             </Link>
-
-            <nav className="hidden md:flex items-center space-x-4">
+            <nav className="flex items-center space-x-1">
               {navLinks.map(item => renderNavItem(item))}
             </nav>
-
             <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center">
-                {user ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                        <Avatar>
-                          <AvatarImage src={user.photoURL || undefined} />
-                          <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel>
-                        <p className="font-semibold">{user.displayName}</p>
-                        <p className="text-xs text-gray-500 font-normal">{user.email}</p>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => navigate('/profile')}>My Profile</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/settings')}>Settings</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setIsSignOutModalOpen(true)} className="text-red-500 focus:text-red-500">
-                        Sign Out
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <Button 
-                    onClick={() => setIsLoginModalOpen(true)} 
-                    className="relative overflow-hidden group px-6 py-2.5 rounded-lg bg-[#a8dadc] hover:bg-[#a8dadc]/90 text-indigo-600 font-medium border border-[#a8dadc] hover:border-[#a8dadc] transition-all duration-300"
-                  >
-                    <span className="relative z-10 flex items-center font-semibold">
-                      <span>Sign In / Sign Up</span>
-                      <svg 
-                        className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </span>
-                  </Button>
-                )}
-              </div>
-
-              <div className={cn('md:hidden flex items-center', isMenuOpen && 'opacity-0 pointer-events-none')}>
-                <button
-                  onClick={toggleMenu}
-                  className="hamburger-button inline-flex items-center justify-center p-2 rounded-md text-gray-200 hover:text-white hover:bg-white/10 focus:outline-none"
-                  aria-expanded={isMenuOpen}
-                >
-                  <span className="sr-only">Open main menu</span>
-                  <div className="relative w-6 h-5">
-                    <div className={cn('absolute h-0.5 w-full bg-white transition-all duration-300', isMenuOpen ? 'rotate-45 top-1/2' : 'top-0')} />
-                    <div className={cn('absolute h-0.5 w-full bg-white transition-all duration-300', isMenuOpen ? 'opacity-0' : 'opacity-100 top-1/2')} />
-                    <div className={cn('absolute h-0.5 w-full bg-white transition-all duration-300', isMenuOpen ? '-rotate-45 top-1/2' : 'top-full')} />
-                  </div>
-                </button>
-              </div>
+              {renderDesktopAuth()}
             </div>
+          </div>
+
+          {/* Mobile Header */}
+          <div className="md:hidden flex items-center justify-between h-20">
+            <Link to="/" className="flex-shrink-0">
+              <img className="h-10 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
+            </Link>
+            <button
+              onClick={toggleMenu}
+              className={cn(
+                'z-50 p-2 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-brand-background focus:ring-brand-accent',
+                isScrolled || isMenuOpen ? 'bg-brand-secondary/70' : 'bg-transparent'
+              )}
+              aria-expanded={isMenuOpen}
+              style={{ width: '44px', height: '44px' }}
+            >
+              <span className="sr-only">{isMenuOpen ? 'Close menu' : 'Open menu'}</span>
+              <div className="w-6 h-6 relative">
+                <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out',
+                  isMenuOpen ? 'rotate-45' : '-translate-y-2'
+                )}></div>
+                <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-opacity duration-300',
+                  isMenuOpen ? 'opacity-0' : 'opacity-100'
+                )}></div>
+                <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-white rounded-full transition-all duration-300 ease-in-out',
+                  isMenuOpen ? '-rotate-45' : 'translate-y-2'
+                )}></div>
+              </div>
+            </button>
           </div>
         </div>
       </header>
 
       {renderMobileMenu()}
 
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
-      />
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
 
       <AlertDialog open={isSignOutModalOpen} onOpenChange={setIsSignOutModalOpen}>
         <AlertDialogContent>
