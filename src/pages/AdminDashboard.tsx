@@ -1,53 +1,53 @@
-import { useState, useEffect, useMemo } from 'react';
-import { assignRoleToUser, getUsers, deleteUser, updateUser } from '../services/roleService';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { createUser, getUsers, deleteUser, updateUser, CreateUserData } from '../services/roleService';
+import { User } from '../types/user';
+import { Toaster, toast } from 'sonner';
 
 // Custom hook for managing users
 const useUsers = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const usersData = await getUsers();
-        setUsers(usersData);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const usersData = await getUsers();
+      setUsers(usersData);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to fetch users.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleDeleteUser = async (uid) => {
-    try {
-      await deleteUser(uid);
-      setUsers(users.filter(user => user.uid !== uid));
-    } catch (err) {
-      setError(err.message);
-    }
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const addUser = (newUser: User) => {
+    setUsers(prevUsers => [newUser, ...prevUsers]);
   };
 
-  const handleUpdateUser = async (uid, data) => {
-    try {
-      const updatedUserData = await updateUser(uid, data);
-      setUsers(users.map(user => user.uid === uid ? updatedUserData : user));
-    } catch (err) {
-      setError(err.message);
-    }
+  const updateUserInState = (updatedUser: User) => {
+    setUsers(prevUsers => prevUsers.map(user => user.uid === updatedUser.uid ? updatedUser : user));
   };
 
-  return { users, loading, error, handleDeleteUser, handleUpdateUser };
+  const removeUser = (uid: string) => {
+    setUsers(prevUsers => prevUsers.filter(user => user.uid !== uid));
+  };
+
+  return { users, loading, error, fetchUsers, addUser, updateUserInState, removeUser };
 };
 
 // Component for a single user row
-const UserRow = ({ user, onEdit, onDelete }) => (
+const UserRow = ({ user, onEdit, onDelete }: { user: User; onEdit: (user: User) => void; onDelete: (uid: string) => void }) => (
   <tr className="border-b border-gray-200 hover:bg-gray-100">
     <td className="py-3 px-6 text-left whitespace-nowrap">{user.displayName || 'N/A'}</td>
     <td className="py-3 px-6 text-left">{user.email}</td>
-    <td className="py-3 px-6 text-center">{user.customClaims?.role || 'N/A'}</td>
+    <td className="py-3 px-6 text-center">{user.customClaims?.role || 'learner'}</td>
     <td className="py-3 px-6 text-center">
       <button onClick={() => onEdit(user)} className="text-blue-500 hover:underline mr-4">Edit</button>
       <button onClick={() => onDelete(user.uid)} className="text-red-500 hover:underline">Delete</button>
@@ -56,32 +56,61 @@ const UserRow = ({ user, onEdit, onDelete }) => (
 );
 
 // Modal for adding/editing a user
-const UserModal = ({ user, onClose, onSave }) => {
+const UserModal = ({ user, onClose, onSave }: { user: User | null; onClose: () => void; onSave: (userData: any, isNew: boolean) => Promise<void> }) => {
+  const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState(user?.customClaims?.role || 'learner');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    onSave(user?.uid, { email, role });
-    onClose();
+  const handleSave = async () => {
+    setIsSaving(true);
+    const userData = user ? { uid: user.uid, role } : { email, password, displayName, role };
+    await onSave(userData, !user);
+    setIsSaving(false);
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6">{user ? 'Edit User' : 'Add User'}</h2>
-        <div className="mb-4">
-          <label className="block text-gray-700">Email</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            className="w-full p-2 border rounded"
-            disabled={!!user} // Disable email editing for existing users
-          />
-        </div>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">{user ? 'Edit User' : 'Add New User'}</h2>
+        {!user && (
+          <>
+            <div className="mb-4">
+              <label className="block text-gray-700">Display Name</label>
+              <input 
+                type="text" 
+                value={displayName} 
+                onChange={(e) => setDisplayName(e.target.value)} 
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Email</label>
+              <input 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Password</label>
+              <input 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+          </>
+        )}
         <div className="mb-6">
           <label className="block text-gray-700">Role</label>
-          <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full p-2 border rounded">
+          <select value={role} onChange={(e) => setRole(e.target.value as any)} className="w-full p-2 border rounded">
             <option value="learner">Learner</option>
             <option value="manager">Manager</option>
             <option value="smartslate-manager">Smartslate Manager</option>
@@ -89,8 +118,10 @@ const UserModal = ({ user, onClose, onSave }) => {
           </select>
         </div>
         <div className="flex justify-end">
-          <button onClick={onClose} className="mr-4 p-2">Cancel</button>
-          <button onClick={handleSave} className="bg-blue-500 text-white p-2 rounded">Save</button>
+          <button onClick={onClose} className="mr-4 p-2" disabled={isSaving}>Cancel</button>
+          <button onClick={handleSave} className="bg-blue-500 text-white p-2 rounded" disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
     </div>
@@ -99,18 +130,18 @@ const UserModal = ({ user, onClose, onSave }) => {
 
 // Main Admin Dashboard Component
 const AdminDashboard = () => {
-  const { users, loading, error, handleDeleteUser, handleUpdateUser } = useUsers();
+  const { users, loading, error, addUser, updateUserInState, removeUser } = useUsers();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const filteredUsers = useMemo(() => 
     users.filter(user => 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (user.displayName && user.displayName.toLowerCase().includes(searchTerm.toLowerCase()))
     ), [users, searchTerm]);
 
-  const openModal = (user = null) => {
+  const openModal = (user: User | null = null) => {
     setEditingUser(user);
     setIsModalOpen(true);
   };
@@ -120,21 +151,38 @@ const AdminDashboard = () => {
     setIsModalOpen(false);
   };
 
-  const handleSaveUser = async (uid, data) => {
-    if (uid) {
-      await handleUpdateUser(uid, data);
-    } else {
-      // Note: Adding a new user requires a different flow (e.g., sending an invite)
-      // This is a placeholder for updating roles.
-      const { email, role } = data;
-      await assignRoleToUser({ email, role });
+  const handleSaveUser = async (userData: any, isNew: boolean) => {
+    try {
+      if (isNew) {
+        const { user: newUser } = await createUser(userData as CreateUserData);
+        addUser(newUser);
+        toast.success('User created successfully!');
+      } else {
+        const updatedUser = await updateUser(userData.uid, { role: userData.role });
+        updateUserInState(updatedUser);
+        toast.success('User updated successfully!');
+      }
+      closeModal();
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred.');
     }
-    // Refetch users to see changes
-    window.location.reload();
+  };
+
+  const handleDeleteUser = async (uid: string) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        await deleteUser(uid);
+        removeUser(uid);
+        toast.success('User deleted successfully.');
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to delete user.');
+      }
+    }
   };
 
   return (
     <div className="container mx-auto p-4">
+      <Toaster position="top-right" richColors />
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       <div className="flex justify-between items-center mb-4">
         <input 

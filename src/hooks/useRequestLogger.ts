@@ -26,19 +26,31 @@ export const useRequestLogger = () => {
       // Log all requests, even before they're made
       console.log(`[${getTimestamp()}] [Request] ${config?.method || 'GET'} ${url.toString()}`);
       
-      // Safely parse request body if it exists and is a string
+      // Safely parse request body if it exists
       let requestBody = undefined;
       if (config?.body) {
         try {
           if (typeof config.body === 'string') {
-            requestBody = JSON.parse(config.body);
-          } else if (config.body instanceof FormData || config.body instanceof Blob || config.body instanceof ArrayBuffer) {
-            // Skip parsing for non-JSON bodies
-            requestBody = '[Non-JSON body]';
+            // Try to parse as JSON, but don't fail if it's not JSON
+            try {
+              requestBody = JSON.parse(config.body);
+            } catch {
+              // If it's not JSON, just show the string (truncated if too long)
+              requestBody = config.body.length > 200 ? `${config.body.substring(0, 200)}...` : config.body;
+            }
+          } else if (config.body instanceof FormData) {
+            requestBody = '[FormData]';
+          } else if (config.body instanceof Blob) {
+            requestBody = '[Blob]';
+          } else if (config.body instanceof ArrayBuffer) {
+            requestBody = '[ArrayBuffer]';
+          } else if (config.body instanceof URLSearchParams) {
+            requestBody = config.body.toString();
+          } else {
+            requestBody = '[Unknown body type]';
           }
         } catch (e) {
-          console.warn('Failed to parse request body:', e);
-          requestBody = '[Unparseable body]';
+          requestBody = '[Error reading body]';
         }
       }
 

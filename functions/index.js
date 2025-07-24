@@ -1,151 +1,149 @@
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onRequest } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
+const cors = require("cors")({ 
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+});
 
 initializeApp();
 
 const functionOptions = {
-  cors: ["https://www.smartslate.io", "https://smartslatesite-app.web.app"],
-  runtime: { nodejs: '18' },
+    runtime: { nodejs: '18' },
+    labels: { "redeploy": "202507241825" } // Updated timestamp
 };
 
-// Helper function to check for admin privileges
-const ensureAdmin = async (request) => {
-  if (!request.auth) {
-    throw new HttpsError(
-      "unauthenticated",
-      "You must be logged in to call this function."
-    );
-  }
-  const callerUid = request.auth.uid;
-  const db = getFirestore();
-  const callerDoc = await db.collection("users").doc(callerUid).get();
-  if (!callerDoc.exists || callerDoc.data().role !== 'smartslate-admin') {
-    throw new HttpsError(
-      "permission-denied",
-      "You do not have permission to perform this action."
-    );
-  }
+// Helper to get the authenticated user from the request headers
+const getAuthenticatedUser = async (req) => {
+    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return null;
+    }
+    const idToken = req.headers.authorization.split('Bearer ')[1];
+    try {
+        return await getAuth().verifyIdToken(idToken);
+    } catch (error) {
+        console.error('Error verifying auth token:', error);
+        return null;
+    }
 };
 
-exports.setUserRole = onCall(functionOptions, async (request) => {
-  // 1. Check if the user is authenticated.
-  if (!request.auth) {
-    throw new HttpsError(
-      "unauthenticated",
-      "You must be logged in to call this function."
-    );
-  }
-
-  // 2. Get the UID of the user calling the function.
-  const { email, role } = request.data;
-
-  if (!email || !role) {
-    throw new HttpsError(
-      "invalid-argument",
-      'The function must be called with "email" and "role" arguments.'
-    );
-  }
-
-  const validRoles = ['smartslate-admin', 'smartslate-manager', 'manager', 'learner'];
-  if (!validRoles.includes(role)) {
-      throw new HttpsError('invalid-argument', `Invalid role. Must be one of: ${validRoles.join(', ')}`);
-  }
-
-  try {
-    await ensureAdmin(request);
+// Helper to check for admin privileges
+const ensureAdmin = async (decodedToken) => {
+    if (!decodedToken) {
+        return { hasPermission: false, message: 'Authentication token is missing or invalid.' };
+    }
     const db = getFirestore();
-    const auth = getAuth();
+    const callerDoc = await db.collection("users").doc(decodedToken.uid).get();
+    if (!callerDoc.exists() || callerDoc.data().role !== 'smartslate-admin') {
+        return { hasPermission: false, message: 'You do not have permission to perform this action.' };
+    }
+    return { hasPermission: true };
+};
 
-    // 4. Get the target user's record and set their new role.
+// Wrapper for creating an admin-only HTTPS endpoint
+const createAdminEndpoint = (handler) => onRequest(functionOptions, (req, res) => {
+    cors(req, res, async () => {
+        // Handle CORS pre-flight request
+        if (req.method === 'OPTIONS') {
+            res.status(204).send('');
+            return;
+        }
+
+        // All other requests should be POST
+        if (req.method !== 'POST') {
+            res.status(405).json({ error: 'Method Not Allowed' });
+            return;
+        }
+
+        const decodedToken = await getAuthenticatedUser(req);
+        const adminCheck = await ensureAdmin(decodedToken);
+
+        if (!adminCheck.hasPermission) {
+            res.status(403).json({ error: adminCheck.message });
+            return;
+        }
+
+        try {
+            await handler(req, res);
+        } catch (error) {
+            console.error('Unhandled error in function execution:', error);
+            res.status(500).json({ error: 'An unexpected internal error occurred.' });
+        }
+    });
+});
+
+// --- Admin Functions ---
+
+exports.createUser = createAdminEndpoint(async (req, res) => {
+    const { email, password, displayName, role } = req.body.data;
+    if (!email || !password || !displayName || !role) {
+        return res.status(400).json({ error: 'Missing required fields: email, password, displayName, role.' });
+    }
+
+    const auth = getAuth();
+    const db = getFirestore();
+    const userRecord = await auth.createUser({ email, password, displayName });
+    await auth.setCustomUserClaims(userRecord.uid, { role });
+    const now = new Date();
+    await db.collection("users").doc(userRecord.uid).set({ 
+        email, displayName, role, createdAt: now.toISOString(), updatedAt: now.toISOString(),
+    });
+
+    res.status(200).json({ data: { status: 'success', uid: userRecord.uid } });
+});
+
+exports.setUserRole = createAdminEndpoint(async (req, res) => {
+    const { email, role } = req.body.data;
+    if (!email || !role) {
+        return res.status(400).json({ error: 'Missing required fields: email, role.' });
+    }
+
+    const auth = getAuth();
+    const db = getFirestore();
     const targetUser = await auth.getUserByEmail(email);
     await auth.setCustomUserClaims(targetUser.uid, { role });
     await db.collection("users").doc(targetUser.uid).update({ role });
 
-    return { 
-        status: 'success',
-        message: `Successfully assigned the role '${role}' to ${email}.`
-    };
-
-  } catch (error) {
-    if (error instanceof HttpsError) {
-        throw error; // Re-throw HttpsError instances directly
-    }
-    console.error("Error in setUserRole function:", error);
-    throw new HttpsError("internal", "An unexpected error occurred.");
-  }
+    res.status(200).json({ data: { status: 'success' } });
 });
 
-exports.listUsers = onCall(functionOptions, async (request) => {
-  try {
-    await ensureAdmin(request);
+exports.listUsers = createAdminEndpoint(async (req, res) => {
     const auth = getAuth();
     const listUsersResult = await auth.listUsers(1000);
-    const users = listUsersResult.users.map((userRecord) => ({
-      uid: userRecord.uid,
-      email: userRecord.email,
-      displayName: userRecord.displayName,
-      customClaims: userRecord.customClaims,
+    const users = listUsersResult.users.map((user) => ({
+        uid: user.uid, email: user.email, displayName: user.displayName, customClaims: user.customClaims,
     }));
-    return { users };
-  } catch (error) {
-    if (error instanceof HttpsError) {
-      throw error;
-    }
-    console.error("Error in listUsers function:", error);
-    throw new HttpsError("internal", "An unexpected error occurred while listing users.");
-  }
+    res.status(200).json({ data: { users } });
 });
 
-exports.updateUser = onCall(functionOptions, async (request) => {
-  try {
-    await ensureAdmin(request);
-    const { uid, role } = request.data;
+exports.updateUser = createAdminEndpoint(async (req, res) => {
+    const { uid, role } = req.body.data;
     if (!uid || !role) {
-      throw new HttpsError("invalid-argument", 'The function must be called with "uid" and "role" arguments.');
+        return res.status(400).json({ error: 'Missing required fields: uid, role.' });
     }
+
     const auth = getAuth();
     const db = getFirestore();
-
     await auth.setCustomUserClaims(uid, { role });
     await db.collection("users").doc(uid).update({ role });
 
     const updatedUser = await auth.getUser(uid);
-    return {
-      uid: updatedUser.uid,
-      email: updatedUser.email,
-      displayName: updatedUser.displayName,
-      customClaims: updatedUser.customClaims,
-    };
-  } catch (error) {
-    if (error instanceof HttpsError) {
-      throw error;
-    }
-    console.error("Error in updateUser function:", error);
-    throw new HttpsError("internal", "An unexpected error occurred while updating the user.");
-  }
+    res.status(200).json({ data: { uid: updatedUser.uid, customClaims: updatedUser.customClaims } });
 });
 
-exports.deleteUser = onCall(functionOptions, async (request) => {
-  try {
-    await ensureAdmin(request);
-    const { uid } = request.data;
+exports.deleteUser = createAdminEndpoint(async (req, res) => {
+    const { uid } = req.body.data;
     if (!uid) {
-      throw new HttpsError("invalid-argument", 'The function must be called with a "uid" argument.');
+        return res.status(400).json({ error: 'Missing required field: uid.' });
     }
+
     const auth = getAuth();
     const db = getFirestore();
-
     await auth.deleteUser(uid);
     await db.collection("users").doc(uid).delete();
 
-    return { status: 'success', message: `Successfully deleted user ${uid}.` };
-  } catch (error) {
-    if (error instanceof HttpsError) {
-      throw error;
-    }
-    console.error("Error in deleteUser function:", error);
-    throw new HttpsError("internal", "An unexpected error occurred while deleting the user.");
-  }
+    res.status(200).json({ data: { status: 'success' } });
 });

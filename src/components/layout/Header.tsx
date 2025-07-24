@@ -261,7 +261,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
         </div>
         <div className="p-5 space-y-2 overflow-y-auto flex-grow">
           <nav className="flex flex-col space-y-2">
-            {navLinks.map(item => renderNavItem(item, true))}
+            {navLinks.map(item => <div key={item.label}>{renderNavItem(item, true)}</div>)}
           </nav>
         </div>
         <div className="p-5 mt-auto border-t border-white/10">
@@ -363,7 +363,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                   <img className="h-7 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
                 </Link>
                 <nav className="flex items-center space-x-1">
-                  {navLinks.map(item => renderNavItem(item))}
+                  {navLinks.map(item => <div key={item.label}>{renderNavItem(item)}</div>)}
                 </nav>
                 <div className="flex items-center space-x-4">
                   {renderDesktopAuth()}

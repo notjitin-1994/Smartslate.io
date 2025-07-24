@@ -1,8 +1,8 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, User as FirebaseUser } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, User as FirebaseUser, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, serverTimestamp, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
-import { getFunctions } from 'firebase/functions';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 // IMPORTANT: Storing API keys directly in your source code is a security risk.
 // Consider using environment variables to protect your credentials.
@@ -25,6 +25,16 @@ export const googleProvider = new GoogleAuthProvider();
 export const db = getFirestore(app);
 export const analytics = getAnalytics(app);
 export const functions = getFunctions(app);
+
+// Connect to emulators in development
+if (import.meta.env.DEV) {
+  // Connect to Functions emulator
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+  
+  // Optionally connect to other emulators if needed
+  // connectAuthEmulator(auth, 'http://localhost:9099');
+  // connectFirestoreEmulator(db, 'localhost', 8080);
+}
 
 // User data collection reference
 const usersCollection = collection(db, 'users');
