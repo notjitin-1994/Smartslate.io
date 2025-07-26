@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 /**
  * Represents a user in the system.
  * This interface is used across the frontend to ensure type safety.
@@ -12,8 +10,8 @@ export interface User {
   customClaims?: {
     role: 'learner' | 'manager' | 'smartslate-manager' | 'smartslate-admin';
   };
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
