@@ -26,8 +26,12 @@ export const functions = getFunctions(app);
 
 // Connect to emulators in development
 if (import.meta.env.DEV) {
-  // Optionally connect to auth emulator if needed
-  // connectAuthEmulator(auth, 'http://localhost:9099');
-  // connectFunctionsEmulator(functions, 'localhost', 5001);
+  // Connect to auth emulator for development
+  try {
+    connectAuthEmulator(auth, 'http://localhost:9099');
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+  } catch (error) {
+    console.warn('Failed to connect to emulators:', error);
+  }
 }
 
