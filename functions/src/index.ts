@@ -26,7 +26,9 @@ export const listAllUsers = functions.https.onCall(async (data, context) => {
 
     const nextPageToken = data?.nextPageToken;
 
-    const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
+    const listUsersResult = nextPageToken && typeof nextPageToken === 'string' && nextPageToken.trim() !== ''
+      ? await admin.auth().listUsers(1000, nextPageToken)
+      : await admin.auth().listUsers(1000);
 
     return {
       users: listUsersResult.users.map(user => ({
