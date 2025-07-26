@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 // IMPORTANT: Storing API keys directly in your source code is a security risk.
 // Consider using environment variables to protect your credentials.
@@ -21,10 +22,12 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const analytics = getAnalytics(app);
+export const functions = getFunctions(app);
 
 // Connect to emulators in development
 if (import.meta.env.DEV) {
   // Optionally connect to auth emulator if needed
   // connectAuthEmulator(auth, 'http://localhost:9099');
+  // connectFunctionsEmulator(functions, 'localhost', 5001);
 }
 
