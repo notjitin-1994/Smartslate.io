@@ -7,12 +7,12 @@ import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 // Consider using environment variables to protect your credentials.
 // For example, in Vite, you can use `.env` files and `import.meta.env.VITE_API_KEY`.
 const firebaseConfig = {
-  apiKey: "AIzaSyDeN3mSpmnjyk9jIg6efqp8uQnb0_tpyiw",
-  authDomain: "smartslate.io",
-  projectId: "smartslatesite-app",
-  storageBucket: "smartslatesite-app.appspot.com",
-  messagingSenderId: "490151080321",
-  appId: "1:490151080321:web:15778d0b8f45b8ef20f880"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase

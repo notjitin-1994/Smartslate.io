@@ -1,18 +1,10 @@
 import React from 'react';
-
-import type { FormType } from '../../lib/formUtils';
-
-interface SolutionsPageProps {
-  onContactClick: (formType: FormType) => void;
-}
-
 import { BusinessSolutions } from '../sections/BusinessSolutions';
 import { StarryNight } from '../common/StarryNight';
+import { useModal } from '@/contexts/ModalContext';
 
-const SolutionsPage: React.FC<SolutionsPageProps> = ({ onContactClick }) => {
-  // In the future, we can add state here to toggle between
-  // <BusinessSolutions /> and an <AcademicSolutions /> component based on user selection.
-  // For now, we default to the Business Leader view.
+const SolutionsPage: React.FC = () => {
+  const { openModal } = useModal();
 
   return (
     <main>
@@ -28,7 +20,7 @@ const SolutionsPage: React.FC<SolutionsPageProps> = ({ onContactClick }) => {
         <StarryNight className="opacity-80" />
       </section>
 
-      <BusinessSolutions onContactClick={onContactClick} />
+      <BusinessSolutions onContactClick={() => openModal('contact', 'leader')} />
 
     </main>
   );

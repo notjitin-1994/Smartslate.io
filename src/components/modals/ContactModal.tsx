@@ -22,14 +22,14 @@ type FormState = BaseFormState;
 interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
-  formType?: FormType;
+  initialFormType?: FormType;
   initialValues?: Partial<FormState>;
 }
 
-const ContactModal: React.FC<ContactModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  formType = 'standard',
+const ContactModal: React.FC<ContactModalProps> = ({
+  isOpen,
+  onClose,
+  initialFormType = 'standard',
   initialValues = {}
 }) => {
   const [formState, setFormState] = useState<FormState>({
@@ -97,7 +97,7 @@ const ContactModal: React.FC<ContactModalProps> = ({
     e.preventDefault();
     
     // Cast formState to any to bypass TypeScript errors for dynamic form fields
-    const validationErrors = validateForm(formState as any, formType);
+    const validationErrors = validateForm(formState as any, initialFormType);
     
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -110,7 +110,7 @@ const ContactModal: React.FC<ContactModalProps> = ({
   };
 
   const getTitle = () => {
-    switch (formType) {
+    switch (initialFormType) {
       case 'standard': return 'Contact Us';
       case 'expert': return 'Become an Expert';
       case 'leader': return 'Partner with Us';
@@ -169,33 +169,33 @@ const ContactModal: React.FC<ContactModalProps> = ({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {formType === 'standard' && (
-                <StandardForm 
-                  formState={formState} 
+              {initialFormType === 'standard' && (
+                <StandardForm
+                  formState={formState}
                   handleChange={handleChange}
                 />
               )}
-              {formType === 'leader' && (
-                <LeaderForm 
-                  formState={formState as any} 
+              {initialFormType === 'leader' && (
+                <LeaderForm
+                  formState={formState as any}
                   handleChange={handleChange}
                 />
               )}
-              {formType === 'investor' && (
-                <InvestorForm 
-                  formState={formState as any} 
+              {initialFormType === 'investor' && (
+                <InvestorForm
+                  formState={formState as any}
                   handleChange={handleChange}
                 />
               )}
-              {formType === 'engineer' && (
-                <EngineerForm 
-                  formState={formState as any} 
+              {initialFormType === 'engineer' && (
+                <EngineerForm
+                  formState={formState as any}
                   handleChange={handleChange}
                 />
               )}
-              {formType === 'expert' && (
-                <ExpertForm 
-                  formState={formState as any} 
+              {initialFormType === 'expert' && (
+                <ExpertForm
+                  formState={formState as any}
                   handleChange={handleChange}
                 />
               )}

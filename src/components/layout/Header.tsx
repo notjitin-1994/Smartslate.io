@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import LoginModal from '@/components/modals/LoginModal';
+import logo from '@/assets/images/Final-Dark-BG.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { auth } from '@/lib/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -49,21 +50,17 @@ interface DropdownNavItem extends BaseNavItem {
 
 type NavLinkType = RegularNavItem | DropdownNavItem;
 
-interface HeaderProps {
-  onContactClick: (formType?: string) => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
+const Header: React.FC = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // State management
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Navigation links data
@@ -123,22 +120,14 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
 
   // Menu open/close logic
   const toggleMenu = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    if (isMenuOpen) {
-      setIsMenuOpen(false);
-    } else {
-      setIsMenuOpen(true);
-    }
-    setTimeout(() => setIsAnimating(false), 500); // Animation duration
+    setIsMenuOpen(!isMenuOpen);
   };
 
   const closeMenu = () => {
-    if (isAnimating || !isMenuOpen) return;
-    setIsAnimating(true);
-    setIsMenuOpen(false);
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+    }
     setIsSolutionsOpen(false);
-    setTimeout(() => setIsAnimating(false), 500);
   };
 
   // --- Component Rendering ---
@@ -160,25 +149,58 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
 
     if ('items' in item) { // Dropdown menu
       const dropdownItem = item as DropdownNavItem;
-      const isSolutionsOpen = location.pathname.startsWith('/solutions');
+      const isSolutionsActive = location.pathname.startsWith('/solutions');
 
-      // Mobile rendering for dropdown
+      const triggerClasses = navLinkClasses({
+        isActive: isSolutionsActive,
+        gradient: dropdownItem.gradient,
+      });
+
+      const triggerContent = (
+        <>
+          {item.label}
+          <svg className="ml-1 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+          </svg>
+        </>
+      );
+
       if (isMobile) {
         return (
-          <div key={item.label}>
+          <div>
             <button
               onClick={() => setIsSolutionsOpen(!isSolutionsOpen)}
-              className={cn(mobileClasses, 'flex justify-between items-center w-full')}
+              className={cn(triggerClasses, 'w-full flex justify-between items-center')}
             >
-              <span>{item.label}</span>
-              <svg className={cn('w-5 h-5 transition-transform', isSolutionsOpen && 'rotate-180')} viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              {item.label}
+              <svg
+                className={cn('ml-1 h-5 w-5 transition-transform', { 'rotate-180': isSolutionsOpen })}
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
             {isSolutionsOpen && (
               <div className="pl-4 mt-2 space-y-2">
-                {item.items.map(subItem => (
-                  <NavLink key={subItem.path} to={subItem.path} onClick={closeMenu} className={({ isActive }) => cn(mobileClasses, isActive ? 'text-white bg-white/10' : 'text-gray-300 hover:bg-white/5')}>
+                {dropdownItem.items.map(subItem => (
+                  <NavLink
+                    key={subItem.path}
+                    to={subItem.path}
+                    onClick={closeMenu}
+                    className={({ isActive }) =>
+                      cn(
+                        'block w-full text-left px-4 py-2.5 text-base font-medium rounded-md',
+                        isActive
+                          ? 'text-white bg-white/10'
+                          : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                      )
+                    }
+                  >
                     {subItem.label}
                   </NavLink>
                 ))}
@@ -188,42 +210,29 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
         );
       }
 
-      // Desktop rendering for dropdown
-      const triggerContent = (
-        <>
-          {dropdownItem.label}
-          <svg className="ml-1 h-5 w-5 transition-transform duration-200" style={{ transform: isSolutionsOpen ? 'rotate(180deg)' : 'rotate(0deg)'}} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
-        </>
-      );
-
       return (
-        <div className="relative" onMouseEnter={() => setIsSolutionsOpen(true)} onMouseLeave={() => setIsSolutionsOpen(false)}>
-          {dropdownItem.path ? (
-            <NavLink to={dropdownItem.path} className={navLinkClasses({ isActive: isSolutionsOpen, gradient: dropdownItem.gradient })}>
-              {triggerContent}
-            </NavLink>
-          ) : (
-            <button className={navLinkClasses({ isActive: isSolutionsOpen, gradient: dropdownItem.gradient })}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className={triggerClasses}>
               {triggerContent}
             </button>
-          )}
-          {isSolutionsOpen && (
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg shadow-lg p-2">
-              {dropdownItem.items.map(subItem => (
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-64 bg-white/10 backdrop-blur-xl border-white/20 text-white z-[999999]">
+            {dropdownItem.items.map(subItem => (
+              <DropdownMenuItem key={subItem.path} asChild>
                 <NavLink
-                  key={subItem.path}
                   to={subItem.path}
                   className={({ isActive }) => cn(
-                    'block w-full text-left px-4 py-2 rounded-md text-sm transition-colors',
+                    'block w-full text-left px-2 py-2 rounded-md text-sm transition-colors',
                     isActive ? 'bg-indigo-500/50 text-white' : 'text-gray-200 hover:bg-white/10 hover:text-white'
                   )}
                 >
                   {subItem.label}
                 </NavLink>
-              ))}
-            </div>
-          )}
-        </div>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     }
 
@@ -340,7 +349,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-50 h-32 pointer-events-none">
+      <header id="main-header" className="fixed top-0 left-0 w-full z-50 h-32 pointer-events-none">
         <div
           className={cn(
             'absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl transition-all duration-500 ease-in-out',
@@ -360,7 +369,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
               {/* Desktop Header */}
               <div className="hidden lg:flex items-center justify-between h-16">
                 <Link to="/" className="flex-shrink-0">
-                  <img className="h-7 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
+                  <img className="h-7 w-auto" src={logo} alt="Smartslate" />
                 </Link>
                 <nav className="flex items-center space-x-1">
                   {navLinks.map(item => <div key={item.label}>{renderNavItem(item)}</div>)}
@@ -373,7 +382,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
               {/* Mobile Header */}
               <div className="lg:hidden flex items-center justify-between h-16">
                 <Link to="/" className="flex-shrink-0">
-                  <img className="h-7 w-auto" src="/images/Final-Dark-BG.png" alt="Smartslate" />
+                  <img className="h-7 w-auto" src={logo} alt="Smartslate" />
                 </Link>
                 <button
                   onClick={toggleMenu}

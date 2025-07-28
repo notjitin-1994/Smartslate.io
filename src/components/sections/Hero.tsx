@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import './Hero.css';
 import { Reveal } from '../common/reveal';
+import { useModal } from '@/contexts/ModalContext';
 
 interface HeroProps {
   onRevealNext: () => void;
@@ -16,6 +17,7 @@ type Star = {
 };
 
 export const Hero: React.FC<HeroProps> = ({ onRevealNext }) => {
+  const { openModal } = useModal();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stars = useRef<Star[]>([]);
   const animationRef = useRef<number>();

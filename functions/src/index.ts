@@ -12,7 +12,7 @@ const ensureAdmin = (context: functions.https.CallableContext): void => {
   }
 
   const userEmail = context.auth.token.email;
-  if (userEmail !== 'jitin@smartslate.io') {
+  if (userEmail !== functions.config().secrets.admin_email) {
     throw new functions.https.HttpsError(
       'permission-denied',
       'Only the designated admin can access this function.'

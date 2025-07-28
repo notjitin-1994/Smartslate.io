@@ -1,5 +1,6 @@
 import React from 'react';
 import './Loader.css';
+import logo from '@/assets/images/SmartSlateLogo_Swirl.png';
 
 interface LoaderProps {
   message?: string;
@@ -22,9 +23,9 @@ export const Loader: React.FC<LoaderProps> = ({
     <div className="loader-container flex flex-col items-center justify-center">
       <div className={`${sizeClasses[size]} mb-4 animate-spin`}>
         <img 
-          src="/images/SmartSlateLogo_Swirl.png" 
-          alt="Loading..." 
-          className="loader-logo w-full h-full object-contain" 
+          src={logo}
+          alt="Loading..."
+          className="loader-logo w-full h-full object-contain"
         />
       </div>
       <p className="text-text-secondary text-sm font-medium" aria-live="polite">
