@@ -3,16 +3,16 @@ import * as admin from 'firebase-admin';
 
 admin.initializeApp();
 
-const ensureAdmin = (context: functions.https.CallableContext): void => {
-  if (!context.auth) {
+const ensureAdmin = (auth: any): void => {
+  if (!auth) {
     throw new functions.https.HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
 
-  const userEmail = context.auth.token.email;
-  if (userEmail !== 'jitin@smartslate.io') {
+  const userEmail = auth.token.email;
+  if (userEmail !== functions.config().secrets.admin_email) {
     throw new functions.https.HttpsError(
       'permission-denied',
       'Only the designated admin can access this function.'
@@ -20,11 +20,11 @@ const ensureAdmin = (context: functions.https.CallableContext): void => {
   }
 };
 
-export const listAllUsers = functions.https.onCall(async (data, context) => {
+export const listAllUsers = functions.https.onCall(async (request) => {
   try {
-    ensureAdmin(context);
+    ensureAdmin(request.auth);
 
-    const nextPageToken = data?.nextPageToken;
+    const nextPageToken = request.data?.nextPageToken;
 
     const listUsersResult = nextPageToken && typeof nextPageToken === 'string' && nextPageToken.trim() !== ''
       ? await admin.auth().listUsers(1000, nextPageToken)

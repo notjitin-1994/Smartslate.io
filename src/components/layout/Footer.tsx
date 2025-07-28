@@ -1,16 +1,16 @@
 import React from 'react';
 import { Instagram, Linkedin, Mail } from 'lucide-react';
+import logo from '@/assets/images/Final-Dark-BG.png';
+import { useModal } from '@/contexts/ModalContext';
 
-interface FooterProps {
-  onContactClick: (formType?: string) => void;
-}
-
-export const Footer: React.FC<FooterProps> = ({ onContactClick }) => (
+export const Footer: React.FC = () => {
+  const { openContactModal } = useModal();
+  return (
   <footer className="bg-brand-bg py-6 border-t border-gray-700/50">
     <div className="container mx-auto px-6 text-text-secondary flex flex-col items-center text-center">
       <a href="#landing" className="inline-block mb-4">
-        <img 
-          src="/images/Final-Dark-BG.png"
+        <img
+          src={logo}
           alt="smartslate.io logo"
           className="h-6 w-auto"
           width="160"
@@ -38,4 +38,5 @@ export const Footer: React.FC<FooterProps> = ({ onContactClick }) => (
       </div>
     </div>
   </footer>
-);
+  );
+};

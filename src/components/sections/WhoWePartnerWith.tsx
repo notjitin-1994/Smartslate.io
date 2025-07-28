@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { FormType } from '../../lib/formUtils';
+import { useModal } from '@/contexts/ModalContext';
 import { Link } from 'react-router-dom';
 import { Reveal } from '../common/reveal';
 import DOMPurify from 'dompurify';
@@ -62,6 +62,7 @@ const content: Record<Tab, Content> = {
 };
 
 export const WhoWePartnerWith: React.FC = () => {
+  const { openModal } = useModal();
   const [activeTab, setActiveTab] = useState<Tab>('institutions');
   const activeContent = content[activeTab];
   const [hoveredTab, setHoveredTab] = useState<Tab | null>(null);
@@ -157,6 +158,7 @@ export const WhoWePartnerWith: React.FC = () => {
                     <ArrowRight className="h-4 w-4" />
                   </button>
                   <button
+                    onClick={() => openModal('contact', activeTab === 'institutions' ? 'leader' : 'contact')}
                     className="px-6 py-3 rounded-lg border border-white/20 text-white font-medium hover:bg-white/10 transition-colors"
                   >
                     Contact Us
